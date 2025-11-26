@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 import xml.etree.ElementTree as ET
 from utils.compute_time import timed
 from utils.languages import LANGUAGES
-from utils.nicad_operations import run_nicad
+from utils.nicad_operations import run_nicad, NiCadTimeout, _nicad_timeout_handler
 from utils.folders_paths import repos_path, nicad_results_path
+import signal
 
 # Set up logging
 log_file = 'rq1/errors.log'
@@ -64,6 +65,10 @@ def get_pr_commits(repo, pr_id, token):
 # Main function to process the data
 @timed()
 def main():
+    if token == None:
+        logging.error(f" Don't finde the GitHub Token")
+        return 
+
     # Initialize the DataFrame for storing results
     columns = ['full_name', 'number', 'language', 'clone_density', 'merge_commit']
     results_df = pd.DataFrame(columns=columns)
@@ -76,9 +81,6 @@ def main():
     os.makedirs(repos_path, exist_ok=True)
 
     for i, row in projects.iterrows():
-        if i == 30:
-            break
-
         print(f"Execution {i} | Total {projects.shape[0]}")
         full_name = row["full_name"]
         pr_number = row["number"]
@@ -132,9 +134,17 @@ def main():
 
         # Run NiCad to detect clones
         print(f"  Running NiCad on {repo_local_path} ...")
+        signal.signal(signal.SIGALRM, _nicad_timeout_handler)
+        signal.alarm(60)  # 60 seconds
+
         try:
             run_nicad(repo_local_path, LANGUAGES[pr_language], nicad_results_path)
+            signal.alarm(0)  # disable alarm if everything went fine
             print("  ✔ NiCad completed")
+
+        except NiCadTimeout:
+            logging.error(f"({i}) NiCad exceeded 1 minute for {full_name} (PR #{pr_number})")
+
         except Exception as e:
             logging.error(f"({i}) Error running NiCad for {full_name} (PR #{pr_number}): {e}")
 

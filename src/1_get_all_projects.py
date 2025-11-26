@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from utils.compute_sample import compute_sample
 from utils.languages import LANGUAGES
-from utils.folders_paths import aidev_path
+from utils.folders_paths import aidev_path, rq1_path
 
-os.makedirs("rq1", exist_ok=True)
+os.makedirs(rq1_path, exist_ok=True)
 
 # === Load datasets ===
 repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))

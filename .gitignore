@@ -9,6 +9,7 @@ repos/**
 AiDev_Dataset/**
 
 rq1/*
+rq2/*
 
 .env
 

@@ -1,11 +1,10 @@
 import os
 from pathlib import Path
-from typing import Union, Dict, Any, List
 from git import Repo
 from clone_genealogy.utils import safe_rmtree
 from clone_genealogy.prints_operations import printInfo, printWarning
-from datetime import datetime
-from time import sleep
+from typing import Union
+import subprocess
 
 def clean_git_locks(repo_path: Union[str, Path]) -> None:
     """Remove Git lock files that may prevent operations."""
@@ -40,6 +39,7 @@ def clean_git_locks(repo_path: Union[str, Path]) -> None:
                 print(f"Removed lock file: {lock_file}")
             except Exception as e:
                 print(f"Warning: Could not remove lock file {lock_file}: {e}")
+
 
 def SetupRepo(ctx: "Context"):
     git_url, paths = ctx.git_url, ctx.paths
@@ -80,43 +80,24 @@ def SetupRepo(ctx: "Context"):
     Repo.clone_from(git_url, paths.repo_dir)
     print(" Repository setup complete.\n")
 
-def GetHashes(ctx: "Context") -> List[str]:
-    paths = ctx.paths
-    hashes: List[str] = []
-    if not os.path.exists(paths.hist_file):
-        return hashes
-    with open(paths.hist_file, "rb") as fp:
-        for raw in fp:
-            raw = raw.strip()
-            if not raw:
-                continue
-            first = raw.split(None, 1)[0]
-            try:
-                h = first.decode("ascii")
-            except UnicodeDecodeError:
-                continue
-            hashes.append(h)
-    hashes.reverse()
-    return hashes
-
-def GitCheckout(repo, current_hash, ctx):
-    paths = ctx.paths
+def GitFecth(commit, ctx):
+    repo_path = ctx.paths.repo_dir
+    # Fetch the base commit
+    print(f"  Fetch out commit {commit} ...")
     try:
-        head_short = repo.git.rev_parse("--short", "HEAD")
-    except Exception:
-        head_short = ""
-    if current_hash not in head_short:
-        try:
-            # Clean Git locks before checkout
-            clean_git_locks(paths.repo_dir)
-            repo.git.checkout(current_hash, f=True)
-        except Exception as e:
-            # Retry once after cleaning locks
-            try:
-                clean_git_locks(paths.repo_dir)
-                sleep(1)
-                
-                repo.git.checkout(current_hash, f=True)
-            except Exception:
-                raise RuntimeError(f"git checkout {current_hash} failed: {e}")
-        sleep(0.5)
+        subprocess.run(["git", "fetch", "origin", commit], cwd=repo_path, check=True)
+        print(f"  ✔ Checked out to commit {commit}")
+    except subprocess.CalledProcessError as e:
+        printWarning(f"Git fetch/pull encountered an issue: {e}")
+
+
+def GitCheckout(commit, ctx):
+    repo_path = ctx.paths.repo_dir
+
+    # Checkout the base commit
+    print(f"  Checking out commit {commit} ...")
+    try:
+        subprocess.run(["git", "checkout", commit], cwd=repo_path, check=True)
+        print(f"  ✔ Checked out to commit {commit}")
+    except subprocess.CalledProcessError as e:
+        printWarning(f"Git checkout encountered an issue: {e} | commit {commit}")

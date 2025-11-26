@@ -3,6 +3,13 @@ import subprocess
 import shutil
 import os
 
+class NiCadTimeout(Exception):
+    """Exceção para timeout do NiCad."""
+    pass
+
+def _nicad_timeout_handler(signum, frame):
+    raise NiCadTimeout("NiCad execution exceeded timeout")
+
 def remove_logs_and_xml_files(directory):
     for file_name in os.listdir(directory):
         file_path = os.path.join(directory, file_name)

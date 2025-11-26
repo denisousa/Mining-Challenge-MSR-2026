@@ -13,9 +13,10 @@ from clone_genealogy.CloneClass import CloneClass
 from clone_genealogy.CloneVersion import CloneVersion
 from clone_genealogy.Lineage import Lineage
 from clone_genealogy.utils import safe_rmtree
-from clone_genealogy.git_operations import SetupRepo, GitCheckout
+from clone_genealogy.git_operations import SetupRepo, GitCheckout, GitFecth
 from clone_genealogy.prints_operations import printError, printInfo
 from clone_genealogy.compute_time import timed, timeToString
+from utils.folders_paths import rq2_path
 
 # =========================
 # Configuration models
@@ -316,11 +317,6 @@ def _derive_repo_name(ctx: Context) -> str:
     base = os.path.splitext(base)[0] or base
     return base or "repo"
 
-
-# =========================
-# Main function (no globals)
-# =========================
-
 @timed()
 def get_clone_genealogy(full_name, methodology_commits) -> str:
     git_url = full_name
@@ -329,10 +325,9 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
     ctx = Context(git_url=git_url, paths=paths, state=state)
 
     # --- NEW: make all folders live inside the installed package directory ---
-    pkg_root = Path(__file__).resolve().parent            # .../omniccg
+    pkg_root = Path(__file__).resolve().parent
     pkg_root_str = str(pkg_root)
 
-    # Workspace (clones, datasets, history) lives under omniccg/cloned_repositories/<repo_name>
     repo_name = _derive_repo_name(ctx)
     base_dir = os.path.join(pkg_root_str, "cloned_repositories", repo_name)
     paths.ws_dir = base_dir
@@ -353,20 +348,22 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
     print("STARTING DATA COLLECTION SCRIPT\n")
     SetupRepo(ctx)
     total_time = 0
-    repo = Repo(paths.repo_dir)
-
     for methodology_commits_item in methodology_commits:
         hash_index = 0
         language = methodology_commits_item["language"]
         set_commits = methodology_commits_item["commits"]
         for author_pr, commit_pr in set_commits.items(): 
+            if author_pr == "coding_agent":
+                author_pr = methodology_commits_item["agent"]
+
             iteration_start_time = time.time()
             hash_index += 1
 
             printInfo(f"Analyzing commit nr.{hash_index} with hash {hash_index} | total commits: {len(methodology_commits)} | author: {author_pr}")
 
             # Ensure we are at the correct commit
-            GitCheckout(repo, commit_pr, ctx)
+            GitFecth(commit_pr, ctx)
+            GitCheckout(commit_pr, ctx)
 
             # Prepare source code
             if not PrepareSourceCode(ctx, language):
@@ -394,9 +391,10 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
             return build_no_clones_message("nicad"), None, None
 
         # Otherwise, finalize outputs
-        lineages_xml = WriteLineageFile(ctx, ctx.state.genealogy_data, paths.genealogy_xml)
+        repo_complete_name = full_name.split(".com/")[-1].replace("/","_")
+        lineages_xml = WriteLineageFile(ctx,
+                                        ctx.state.genealogy_data,
+                                        f"{rq2_path}/{repo_complete_name}.xml")
 
         print("\nDONE")
         return lineages_xml
-
-    # get_clone_genealogy("https://github.com/jfree/jfreechart")

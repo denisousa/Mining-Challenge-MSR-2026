@@ -4,58 +4,15 @@ import subprocess
 import logging
 import requests
 from dotenv import load_dotenv
-from utils.folders_paths import repos_path, aidev_path
+from utils.folders_paths import repos_path, aidev_path, rq2_path
 from utils.compute_time import timed
 from utils.languages import LANGUAGES
 from clone_genealogy.core import get_clone_genealogy
 
-# Pegar somente as projetos que possuem clone density > 0
-# Pegar todos as PRs desses projetos
-# Pegar o último commit das PRs Mergeadas 
-# Pegar o parent de cada PR mergeada
+os.makedirs(rq2_path, exist_ok=True)
 
 load_dotenv()  # Load environment variables from .env file
 token = os.getenv("GITHUB_TOKEN")
-
-# === Load datasets ===
-repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
-pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
-pr_commits = pd.read_csv(os.path.join(aidev_path, "pr_commits.csv"))
-pr_commit_details = pd.read_csv(os.path.join(aidev_path, "pr_commit_details.csv"))
-
-# === Remove duplicate repositories and filter by language ===
-repo_df = repo_df.drop_duplicates(subset="url", keep="first")
-repo_df = repo_df[repo_df["language"].isin(LANGUAGES.keys())]
-
-# === Keep only merged pull requests ===
-merged_prs = pr_df[pr_df["merged_at"].notna()].copy()
-
-# === Join PRs with repositories to retrieve project names and languages ===
-merged_prs = merged_prs.merge(
-    repo_df[["url", "full_name", "language"]],
-    left_on="repo_url",
-    right_on="url",
-    how="left"
-)
-
-# === Load clone density ===
-csv_path = "rq1/clone_density_results_rq1.csv"
-df_clone_density = pd.read_csv(csv_path)
-
-# === Filter clone_density > 0 ===
-df_positive_clone = df_clone_density[df_clone_density["clone_density"] > 0].copy()
-
-merged_prs = merged_prs[
-    merged_prs["full_name"].isin(df_positive_clone["full_name"])
-].copy()
-
-# === Converter merged_prs em um dicionário agrupado por full_name ===
-merged_prs_dict = (
-    merged_prs
-    .groupby("full_name")
-    .apply(lambda g: g.to_dict(orient="records"))
-    .to_dict()
-)
 
 # Get PR commits and related data
 def get_pr_commits(repo, pr_id, token):
@@ -69,9 +26,46 @@ def get_pr_commits(repo, pr_id, token):
 
 # Main function to process the data
 @timed()
-def main(merged_prs_dict):
-    for full_name, pr_data_list in merged_prs_dict.items():
+def main():
+    # === Load datasets ===
+    repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
+    pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
 
+    # === Remove duplicate repositories and filter by language ===
+    repo_df = repo_df.drop_duplicates(subset="url", keep="first")
+    repo_df = repo_df[repo_df["language"].isin(LANGUAGES.keys())]
+
+    # === Keep only merged pull requests ===
+    merged_prs = pr_df[pr_df["merged_at"].notna()].copy()
+
+    # === Join PRs with repositories to retrieve project names and languages ===
+    merged_prs = merged_prs.merge(
+        repo_df[["url", "full_name", "language"]],
+        left_on="repo_url",
+        right_on="url",
+        how="left"
+    )
+
+    # === Load clone density ===
+    csv_path = "rq1/clone_density_results_rq1.csv"
+    df_clone_density = pd.read_csv(csv_path)
+
+    # === Filter clone_density > 0 ===
+    df_positive_clone = df_clone_density[df_clone_density["clone_density"] > 0].copy()
+
+    merged_prs = merged_prs[
+        merged_prs["full_name"].isin(df_positive_clone["full_name"])
+    ].copy()
+
+    # === Convert merged_prs into a dictionary grouped by full_name. ===
+    merged_prs_dict = (
+        merged_prs
+        .groupby("full_name")
+        .apply(lambda g: g.to_dict(orient="records"))
+        .to_dict()
+    )
+
+    for full_name, pr_data_list in merged_prs_dict.items():
         methodology_commits = []
         for i, pr_data in enumerate(pr_data_list):
             print(f"Execution {i} | Total {merged_prs.shape[0]}")
@@ -132,12 +126,14 @@ def main(merged_prs_dict):
                 logging.error(f"({i}) Error checking out commit {merged_commit} for {full_name}: {e}")
                 continue
 
-            methodology_commits.append({"commits": {"developer": parent_first_commit_pr, "coding_agent": merged_commit}, "language": LANGUAGES[pr_language]})
-
+            methodology_commits.append({"commits": {"developer": parent_first_commit_pr, "coding_agent": merged_commit},
+                                        "language": LANGUAGES[pr_language],
+                                        "agent": pr_data["agent"]})
 
         get_clone_genealogy(f"https://github.com/{full_name}", methodology_commits)
 
-                
         print("\n=== All PRs processed ===")
 
-main(merged_prs_dict)
+# Execute main function
+if __name__ == "__main__":
+    main()
