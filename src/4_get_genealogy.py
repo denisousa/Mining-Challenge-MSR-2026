@@ -4,7 +4,7 @@ import subprocess
 import logging
 import requests
 from dotenv import load_dotenv
-from utils.folders_paths import repos_path
+from utils.folders_paths import repos_path, aidev_path
 from utils.compute_time import timed
 from utils.languages import LANGUAGES
 from clone_genealogy.core import get_clone_genealogy
@@ -18,11 +18,10 @@ load_dotenv()  # Load environment variables from .env file
 token = os.getenv("GITHUB_TOKEN")
 
 # === Load datasets ===
-input_dir = "AiDev_Dataset"
-repo_df = pd.read_csv(os.path.join(input_dir, "repository.csv"))
-pr_df = pd.read_csv(os.path.join(input_dir, "pull_request.csv"))
-pr_commits = pd.read_csv(os.path.join(input_dir, "pr_commits.csv"))
-pr_commit_details = pd.read_csv(os.path.join(input_dir, "pr_commit_details.csv"))
+repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
+pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
+pr_commits = pd.read_csv(os.path.join(aidev_path, "pr_commits.csv"))
+pr_commit_details = pd.read_csv(os.path.join(aidev_path, "pr_commit_details.csv"))
 
 # === Remove duplicate repositories and filter by language ===
 repo_df = repo_df.drop_duplicates(subset="url", keep="first")

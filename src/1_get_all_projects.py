@@ -2,13 +2,13 @@ import os
 import pandas as pd
 from utils.compute_sample import compute_sample
 from utils.languages import LANGUAGES
+from utils.folders_paths import aidev_path
+
+os.makedirs("rq1", exist_ok=True)
 
 # === Load datasets ===
-input_dir = "AiDev_Dataset"
-repo_df = pd.read_csv(os.path.join(input_dir, "repository.csv"))
-pr_df = pd.read_csv(os.path.join(input_dir, "pull_request.csv"))
-pr_commits = pd.read_csv(os.path.join(input_dir, "pr_commits.csv"))
-pr_commit_details = pd.read_csv(os.path.join(input_dir, "pr_commit_details.csv"))
+repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
+pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
 
 # === Remove duplicate repositories and filter by language ===
 repo_df = repo_df.drop_duplicates(subset="url", keep="first")
