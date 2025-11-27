@@ -348,8 +348,9 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
     print("STARTING DATA COLLECTION SCRIPT\n")
     SetupRepo(ctx)
     total_time = 0
+    hash_index = 0
     for methodology_commits_item in methodology_commits:
-        hash_index = 0
+        total_commits = len(methodology_commits)*2
         language = methodology_commits_item["language"]
         set_commits = methodology_commits_item["commits"]
         for author_pr, commit_pr in set_commits.items(): 
@@ -359,7 +360,7 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
             iteration_start_time = time.time()
             hash_index += 1
 
-            printInfo(f"Analyzing commit nr.{hash_index} with hash {hash_index} | total commits: {len(methodology_commits)} | author: {author_pr}")
+            printInfo(f"Analyzing commit nr.{hash_index} with hash {hash_index} | total commits: {total_commits} | author: {author_pr}")
 
             # Ensure we are at the correct commit
             GitFecth(commit_pr, ctx)
@@ -397,4 +398,3 @@ def get_clone_genealogy(full_name, methodology_commits) -> str:
                                         f"{rq2_path}/{repo_complete_name}.xml")
 
         print("\nDONE")
-        return lineages_xml

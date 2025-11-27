@@ -68,7 +68,7 @@ def main():
     for full_name, pr_data_list in merged_prs_dict.items():
         methodology_commits = []
         for i, pr_data in enumerate(pr_data_list):
-            print(f"Execution {i} | Total {merged_prs.shape[0]}")
+            print(f"Execution: {i} | total PRs in {full_name}: {len(merged_prs_dict.values())} | Total PRs {merged_prs.shape[0]}")
             full_name = pr_data["full_name"]
             pr_number = pr_data["number"]
             pr_language = pr_data["language"]
@@ -130,7 +130,9 @@ def main():
                                         "language": LANGUAGES[pr_language],
                                         "agent": pr_data["agent"]})
 
-        get_clone_genealogy(f"https://github.com/{full_name}", methodology_commits)
+
+        if len(methodology_commits) <= 3:
+            get_clone_genealogy(f"https://github.com/{full_name}", methodology_commits)
 
         print("\n=== All PRs processed ===")
 
