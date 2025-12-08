@@ -3,13 +3,11 @@ import pandas as pd
 from utils.languages import LANGUAGES
 from utils.folders_paths import aidev_path, results_01_path
 from utils.boxplot import (
-    export_outlier_projects_csv,
     export_q3plus_projects_csv,
     enrich_projects_with_github_counts_until_date,
 )
 
 os.makedirs(results_01_path, exist_ok=True)
-
 
 # === Load datasets ===
 repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
@@ -29,7 +27,6 @@ merged_prs = merged_prs.merge(
     right_on="url",
     how="left",
 )
-
 
 unique_repos_count = merged_prs["url"].nunique()
 

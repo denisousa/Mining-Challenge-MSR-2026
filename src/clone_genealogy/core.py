@@ -294,6 +294,7 @@ def _insert_last_merged_commit(full_name, merged_commits):
     new_commit_context = merged_commits[-1].copy()
     new_commit_context["sha"] = last_pr_sha
     new_commit_context["pr_number"] = last_pr_number
+    new_commit_context["author"] = "Developer"
 
     merged_commits.append(new_commit_context)
 
@@ -355,6 +356,7 @@ def get_clone_genealogy(full_name, merged_commits) -> str:
 
         # Prepare source code
         if not PrepareSourceCode(ctx, language):
+            logging.error(f"Don't have files '{language}' type in {full_name} (PR #{number_pr})")
             continue
 
         RunCloneDetection(ctx, language)

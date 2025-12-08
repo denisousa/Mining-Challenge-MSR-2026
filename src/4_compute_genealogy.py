@@ -9,45 +9,50 @@ os.makedirs(results_04_path, exist_ok=True)
 
 # --- Data Structures ---
 
-# 1. Stats by Language (Existing)
-# stats[language][author_group]["change"][pattern] = count
-stats_by_language = defaultdict(lambda: defaultdict(lambda: {
+# 1. Creation Stats
+stats_creation = defaultdict(int)
+
+# 2. Update Stats (Global)
+stats_updates_global = defaultdict(lambda: {
+    "change": defaultdict(int),
+    "evolution": defaultdict(int)
+})
+
+# 3. Update Stats (By Agent)
+stats_updates_agent = defaultdict(lambda: {
+    "change": defaultdict(int),
+    "evolution": defaultdict(int)
+})
+
+# 4. Update Stats (By Language & Group)
+stats_updates_language = defaultdict(lambda: defaultdict(lambda: {
     "change": defaultdict(int),
     "evolution": defaultdict(int)
 }))
 
-# Totals for Language Percentage Calculation (Base 100% per Language)
-language_grand_totals = defaultdict(lambda: {
-    "change": 0,
-    "evolution": 0
-})
-
-# 2. Stats by Specific Agent (New Request)
-# stats_by_agent[agent_name]["change"][pattern] = count
-stats_by_agent = defaultdict(lambda: {
-    "change": defaultdict(int),
-    "evolution": defaultdict(int)
-})
-
 print("Starting XML file processing...")
+
+# --- Helper to identify 'None' ---
+def is_start_of_lineage(val):
+    if val is None: return True
+    s_val = str(val).strip().lower()
+    return s_val == "none" or s_val == ""
 
 # --- Processing XML Files ---
 for filename in os.listdir(results_03_path):
     if not filename.endswith(".xml"):
         continue
     
-    # 1. Extract Metadata from Filename
     parts = filename.split('_')
     
-    # Language (Index 0)
+    # 1. Extract Language (First part of filename)
     try:
-        language = parts[0]
+        language_name = parts[0].capitalize() # Ex: 'java' -> 'Java'
     except IndexError:
-        language = "Unknown"
+        language_name = "Unknown"
 
-    # Specific Agent Name (Index 1) - New Logic
+    # 2. Extract Agent Name
     try:
-        # File format is <Language>_<AgentName>_*.xml
         specific_agent_name = parts[1]
     except IndexError:
         specific_agent_name = "UnknownAgent"
@@ -60,126 +65,167 @@ for filename in os.listdir(results_03_path):
         print(f"Error parsing XML: {filename}")
         continue
 
-    # 2. Iterate Versions
     for version in root.findall(".//version"):
         raw_author = version.get("author")
         evolution = version.get("evolution") 
         change = version.get("change")       
         
-        # --- Logic A: For Language Table (Generic Grouping) ---
+        # --- Define Groups ---
         if raw_author == "Developer":
-            author_group_generic = "Developer"
-        else:
-            author_group_generic = "Agent" # Generic bucket
-        
-        # Update Language Stats
-        if change:
-            stats_by_language[language][author_group_generic]["change"][change] += 1
-            language_grand_totals[language]["change"] += 1
-        if evolution:
-            stats_by_language[language][author_group_generic]["evolution"][evolution] += 1
-            language_grand_totals[language]["evolution"] += 1
-
-        # --- Logic B: For Agent Table (Specific Grouping) ---
-        if raw_author == "Developer":
-            # We aggregate all developers into one global "Developer" bucket
-            # to serve as a baseline comparison for all agents
+            author_group = "Developer"
             agent_key = "Developer"
         else:
-            # Here we use the specific name from the filename (e.g., "Devin")
+            author_group = "Agent"
             agent_key = specific_agent_name
-        
-        # Update Agent Stats (Global across languages)
-        if change:
-            stats_by_agent[agent_key]["change"][change] += 1
-        if evolution:
-            stats_by_agent[agent_key]["evolution"][evolution] += 1
+
+        # --- LOGIC SPLIT: Creation vs Update ---
+        if is_start_of_lineage(change):
+            # Creation (Table 1)
+            stats_creation[author_group] += 1
+        else:
+            # Updates (Tables 2, 3, 4, 5, 6)
+            
+            # A. Global Stats
+            stats_updates_global[author_group]["change"][change] += 1
+            if not is_start_of_lineage(evolution):
+                stats_updates_global[author_group]["evolution"][evolution] += 1
+            
+            # B. Specific Agent Stats
+            stats_updates_agent[agent_key]["change"][change] += 1
+            if not is_start_of_lineage(evolution):
+                stats_updates_agent[agent_key]["evolution"][evolution] += 1
+
+            # C. Language Stats
+            stats_updates_language[language_name][author_group]["change"][change] += 1
+            if not is_start_of_lineage(evolution):
+                stats_updates_language[language_name][author_group]["evolution"][evolution] += 1
 
 # ==========================================
-# OUTPUT 1: Table by Language (Your previous table)
+# HELPER 1: Standard Percentages (Include Same)
+# WITH SINGLE TOTAL COLUMN
 # ==========================================
-rows_language = []
+def get_pct_row(label_dict, type_dict):
+    total_change = sum(type_dict["change"].values())
+    total_evolution = sum(type_dict["evolution"].values())
 
-for language, authors_data in stats_by_language.items():
-    total_change_lang = language_grand_totals[language]["change"]
-    total_evolution_lang = language_grand_totals[language]["evolution"]
+    def pct(val, tot):
+        return f"{(val/tot)*100:.2f}%" if tot > 0 else "0.00%"
 
-    for author, types in authors_data.items():
-        # Helper for % relative to Language Total
-        def calc_pct_lang(dictionary, key, grand_total):
-            if grand_total > 0:
-                return (dictionary[key] / grand_total) * 100
-            return 0.0
-
-        rows_language.append({
-            "Name": language,
-            "Set": author,
-            "Consistent": f"{calc_pct_lang(types['change'], 'Consistent', total_change_lang):.2f}%",
-            "Inconsistent": f"{calc_pct_lang(types['change'], 'Inconsistent', total_change_lang):.2f}%",
-            "Same (Change)": f"{calc_pct_lang(types['change'], 'Same', total_change_lang):.2f}%",
-            "Add": f"{calc_pct_lang(types['evolution'], 'Add', total_evolution_lang):.2f}%",
-            "Subtract": f"{calc_pct_lang(types['evolution'], 'Subtract', total_evolution_lang):.2f}%",
-            "Same (Evolution)": f"{calc_pct_lang(types['evolution'], 'Same', total_evolution_lang):.2f}%"
-        })
-
-columns_order = ["Name", "Set", "Consistent", "Inconsistent", "Same (Change)", "Add", "Subtract", "Same (Evolution)"]
-df_language = pd.DataFrame(rows_language, columns=columns_order).sort_values(by=["Name", "Set"])
-
-output_csv_lang = os.path.join(results_04_path, "evolution_change_by_language.csv")
-df_language.to_csv(output_csv_lang, index=False)
-
-print(f"Table 1 (By Language) saved at: {output_csv_lang}")
-print(df_language.to_markdown(index=False))
-print("\n" + "="*80 + "\n")
-
-# ==========================================
-# OUTPUT 2: Table by Specific Agent (Global)
-# ==========================================
-rows_agent = []
-
-for agent_name, types in stats_by_agent.items():
-    
-    # Calculate Totals for this specific Agent across all languages
-    # This allows us to see the "Genealogy Profile" of the agent (e.g., How often DOES Devin break things?)
-    total_change_agent = sum(types["change"].values())
-    total_evolution_agent = sum(types["evolution"].values())
-
-    def calc_pct_agent(dictionary, key, total):
-        if total > 0:
-            return (dictionary[key] / total) * 100
-        return 0.0
-
-    rows_agent.append({
-        "Agent Name": agent_name,
+    row = label_dict.copy()
+    row.update({
         # Change Patterns
-        "Consistent": f"{calc_pct_agent(types['change'], 'Consistent', total_change_agent):.2f}%",
-        "Inconsistent": f"{calc_pct_agent(types['change'], 'Inconsistent', total_change_agent):.2f}%",
-        "Same (Change)": f"{calc_pct_agent(types['change'], 'Same', total_change_agent):.2f}%",
+        "Consistent": pct(type_dict['change']['Consistent'], total_change),
+        "Inconsistent": pct(type_dict['change']['Inconsistent'], total_change),
+        "Same (Change)": pct(type_dict['change']['Same'], total_change),
+        
         # Evolution Patterns
-        "Add": f"{calc_pct_agent(types['evolution'], 'Add', total_evolution_agent):.2f}%",
-        "Subtract": f"{calc_pct_agent(types['evolution'], 'Subtract', total_evolution_agent):.2f}%",
-        "Same (Evolution)": f"{calc_pct_agent(types['evolution'], 'Same', total_evolution_agent):.2f}%",
-        # Raw counts (Optional, good for debugging/checking sample size)
-        "Total Changes": total_change_agent
+        "Add": pct(type_dict['evolution']['Add'], total_evolution),
+        "Subtract": pct(type_dict['evolution']['Subtract'], total_evolution),
+        "Same (Evolution)": pct(type_dict['evolution']['Same'], total_evolution),
+        
+        # SINGLE TOTAL (Based on Change count, which implies Total Updates)
+        "Total": total_change
     })
+    return row
 
-# Create DataFrame
-columns_agent_order = [
-    "Agent Name", 
+columns_pct = [
     "Consistent", "Inconsistent", "Same (Change)", 
-    "Add", "Subtract", "Same (Evolution)",
-    "Total Changes"
+    "Add", "Subtract", "Same (Evolution)", 
+    "Total"
 ]
 
-df_agent = pd.DataFrame(rows_agent, columns=columns_agent_order)
+# ==========================================
+# HELPER 2: Percentages EXCLUDING SAME (Active)
+# Left with specific totals for clarity on what is "Active"
+# ==========================================
+def get_pct_row_no_same(label_dict, type_dict):
+    count_consistent = type_dict["change"]['Consistent']
+    count_inconsistent = type_dict["change"]['Inconsistent']
+    total_change_no_same = count_consistent + count_inconsistent
 
-# Sort: Developer first, then others alphabetically
-df_agent["is_dev"] = df_agent["Agent Name"] == "Developer"
-df_agent = df_agent.sort_values(by=["is_dev", "Agent Name"], ascending=[False, True]).drop(columns=["is_dev"])
+    count_add = type_dict["evolution"]['Add']
+    count_subtract = type_dict["evolution"]['Subtract']
+    total_evolution_no_same = count_add + count_subtract
 
-output_csv_agent = os.path.join(results_04_path, "evolution_change_by_agent_global.csv")
-df_agent.to_csv(output_csv_agent, index=False)
+    def pct(val, tot):
+        return f"{(val/tot)*100:.2f}%" if tot > 0 else "0.00%"
 
-print(f"Table 2 (By Specific Agent - Global) saved at: {output_csv_agent}")
-print("\n--- Global Agent Genealogy Comparison ---")
-print(df_agent.to_markdown(index=False))
+    row = label_dict.copy()
+    row.update({
+        "Consistent": pct(count_consistent, total_change_no_same),
+        "Inconsistent": pct(count_inconsistent, total_change_no_same),
+        "Add": pct(count_add, total_evolution_no_same),
+        "Subtract": pct(count_subtract, total_evolution_no_same),
+        "Total Change Count (Active)": total_change_no_same,
+        "Total Evolution Count (Active)": total_evolution_no_same
+    })
+    return row
+
+columns_pct_no_same = [
+    "Consistent", "Inconsistent", 
+    "Add", "Subtract", 
+    "Total Change Count (Active)", "Total Evolution Count (Active)"
+]
+
+# ==========================================
+# OUTPUT GENERATION
+# ==========================================
+
+# --- 1. CLONES CREATED ---
+rows_creation = []
+for group, count in stats_creation.items():
+    rows_creation.append({"Group": group, "New Clones Created": count})
+df_creation = pd.DataFrame(rows_creation)
+df_creation.to_csv(os.path.join(results_04_path, "1_clones_created_dev_vs_agent.csv"), index=False)
+print("Table 1 Saved.")
+
+# --- 2. GLOBAL PATTERNS (Standard - Single Total) ---
+rows_global = []
+for group, types in stats_updates_global.items():
+    rows_global.append(get_pct_row({"Group": group}, types))
+df_global = pd.DataFrame(rows_global, columns=["Group"] + columns_pct)
+df_global.to_csv(os.path.join(results_04_path, "2_global_patterns_dev_vs_agent.csv"), index=False)
+print("Table 2 Saved (Single Total).")
+
+# --- 3. AGENT PATTERNS (Standard - Single Total) ---
+rows_agent = []
+for agent_name, types in stats_updates_agent.items():
+    rows_agent.append(get_pct_row({"Author PR": agent_name}, types))
+df_agent = pd.DataFrame(rows_agent, columns=["Author PR"] + columns_pct)
+df_agent["is_dev"] = df_agent["Author PR"] == "Developer"
+df_agent = df_agent.sort_values(by=["is_dev", "Author PR"], ascending=[False, True]).drop(columns=["is_dev"])
+df_agent.to_csv(os.path.join(results_04_path, "3_agent_patterns_breakdown.csv"), index=False)
+print("Table 3 Saved.")
+
+# --- 4. GLOBAL PATTERNS (No Same) ---
+rows_global_ns = []
+for group, types in stats_updates_global.items():
+    rows_global_ns.append(get_pct_row_no_same({"Group": group}, types))
+df_global_ns = pd.DataFrame(rows_global_ns, columns=["Group"] + columns_pct_no_same)
+df_global_ns.to_csv(os.path.join(results_04_path, "4_global_patterns_dev_vs_agent_NO_SAME.csv"), index=False)
+print("Table 4 Saved.")
+
+# --- 5. AGENT PATTERNS (No Same) ---
+rows_agent_ns = []
+for agent_name, types in stats_updates_agent.items():
+    rows_agent_ns.append(get_pct_row_no_same({"Author PR": agent_name}, types))
+df_agent_ns = pd.DataFrame(rows_agent_ns, columns=["Author PR"] + columns_pct_no_same)
+df_agent_ns["is_dev"] = df_agent_ns["Author PR"] == "Developer"
+df_agent_ns = df_agent_ns.sort_values(by=["is_dev", "Author PR"], ascending=[False, True]).drop(columns=["is_dev"])
+df_agent_ns.to_csv(os.path.join(results_04_path, "5_agent_patterns_breakdown_NO_SAME.csv"), index=False)
+print("Table 5 Saved.")
+
+# --- 6. LANGUAGE PATTERNS (Standard - Single Total) ---
+rows_lang = []
+for language, groups in stats_updates_language.items():
+    for group, types in groups.items():
+        rows_lang.append(get_pct_row({"Language": language, "Group": group}, types))
+
+df_lang = pd.DataFrame(rows_lang, columns=["Language", "Group"] + columns_pct)
+df_lang = df_lang.sort_values(by=["Language", "Group"])
+
+output_csv_lang = os.path.join(results_04_path, "6_language_patterns_dev_vs_agent.csv")
+df_lang.to_csv(output_csv_lang, index=False)
+
+print(f"Table 6 (Language Breakdown) saved (Single Total).")
+print(df_lang.to_markdown(index=False))

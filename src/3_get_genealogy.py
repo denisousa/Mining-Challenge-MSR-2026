@@ -19,15 +19,15 @@ def main():
     # === Load projects_with_pr_sha.csv ===
     csv_path = os.path.join(results_02_path, "projects_with_pr_sha.csv")
     df_prs = pd.read_csv(csv_path)
-    
+
     print(f"Loaded {len(df_prs)} PRs from {csv_path}")
     print(f"Columns: {df_prs.columns.tolist()}")
-    
+
     # === Group by full_name to process each project ===
     projects_grouped = df_prs.groupby("full_name")
-    
+
     for full_name, project_prs in projects_grouped:
-        if full_name in DONT_EXECUTE:
+        if "flexile" not in full_name:
             continue
 
         total_prs = len(project_prs)

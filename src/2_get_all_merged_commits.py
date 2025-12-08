@@ -6,40 +6,35 @@ from dotenv import load_dotenv
 from utils.folders_paths import aidev_path, results_01_path, results_02_path
 from utils.languages import LANGUAGES
 
-
-# Set up logging
-os.makedirs(results_02_path, exist_ok=True)
-log_file = f'{results_02_path}/errors.log'
-if os.path.exists(log_file):
-    os.remove(log_file)  # Delete the existing log file when script runs again
-
-
-logging.basicConfig(filename=log_file, level=logging.INFO)
-
-# === Load datasets ===
-repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
-pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
-
-# === Remove duplicate repositories and filter by language ===
-repo_df = repo_df.drop_duplicates(subset="url", keep="first")
-repo_df = repo_df[repo_df["language"].isin(LANGUAGES.keys())]
-
-# === Keep only merged pull requests ===
-merged_prs = pr_df[pr_df["merged_at"].notna()].copy()
-
-# === Join PRs with repositories to retrieve project names and languages ===
-merged_prs = merged_prs.merge(
-    repo_df[["url", "full_name", "language"]],
-    left_on="repo_url",
-    right_on="url",
-    how="left"
-)
 # Load environment variables
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
 
 # Ensure rq2 directory exists
 os.makedirs(results_02_path, exist_ok=True)
+
+# Set up logging
+log_file = f'{results_02_path}/errors.log'
+if os.path.exists(log_file):
+    os.remove(log_file)  # Delete the existing log file when script runs again
+
+logging.basicConfig(filename=log_file, level=logging.INFO)
+
+def get_merged_prs(pr_df, repo_df):
+    # === Remove duplicate repositories and filter by language ===
+    repo_df = repo_df.drop_duplicates(subset="url", keep="first")
+    repo_df = repo_df[repo_df["language"].isin(LANGUAGES.keys())]
+
+    # === Keep only merged pull requests ===
+    merged_prs = pr_df[pr_df["merged_at"].notna()].copy()
+
+    # === Join PRs with repositories to retrieve project names and languages ===
+    return merged_prs.merge(
+        repo_df[["url", "full_name", "language"]],
+        left_on="repo_url",
+        right_on="url",
+        how="left"
+    )
 
 def get_pr_merged_sha(repo, pr_number, token):
     """
@@ -92,21 +87,6 @@ def get_pr_author(repo, pr_number, token):
 def get_all_merged_prs_until(df, repo, pr_id, language, token=None):
     """
     Get all merged pull requests for a GitHub repository up to a specific PR ID.
-    
-    Args:
-        repo (str): GitHub repository in format 'owner/repo'
-        pr_id (int): The PR number to reach (inclusive)
-        language (str): The programming language of the repository
-        token (str, optional): GitHub API token for authentication
-    
-    Returns:
-        list: List of dictionaries containing PR information with keys:
-            - full_name: Repository full name
-            - language: Programming language
-            - pr_url: URL of the pull request
-            - pr_number: PR number
-            - sha: Merged commit SHA
-            - author: PR author username
     """
     headers = {'Authorization': f'token {token}'} if token else {}
     prs_list = []
@@ -153,10 +133,14 @@ def get_all_merged_prs_until(df, repo, pr_id, language, token=None):
                     # Get merged commit SHA
                     sha = get_pr_merged_sha(repo, pr_number, token)
                     
-                    author_aidev = df[(df['full_name'] == repo) & (df['number'] == pr_number)]['agent']
-                    if not author_aidev.empty:
-                        author_aidev = author_aidev.iloc[0]
+                    # Check agent status from the passed dataframe 'df'
+                    # Note: Ensure 'df' (merged_prs) actually has an 'agent' column or logic to map it
+                    author_aidev_series = df[(df['full_name'] == repo) & (df['number'] == pr_number)]['agent']
+                    
+                    if not author_aidev_series.empty:
+                        author_aidev = author_aidev_series.iloc[0]
                     else:
+                        # Default to Developer if not found in our CSV map
                         author_aidev = "Developer"
 
                     pr_info = {
@@ -195,7 +179,46 @@ def get_all_merged_prs_until(df, repo, pr_id, language, token=None):
     print(f"  Total merged PRs found: {len(prs_list)}")
     return prs_list
 
+def generate_summary_table(output_df):
+    """
+    Generates a pretty printed summary table with agent/dev percentages.
+    """
+    summary_list = []
+    
+    # Group by Project and Language
+    for (project, lang), group in output_df.groupby(['full_name', 'language']):
+        total = len(group)
+        
+        # Count Developer commits
+        dev_count = len(group[group['author_aidev'] == 'Developer'])
+        
+        # Count Agent commits
+        agent_count = total - dev_count
+        
+        # Identify which Agents were involved (excluding 'Developer')
+        agents_involved = group[group['author_aidev'] != 'Developer']['author_aidev'].unique()
+        agent_str = ", ".join(str(a) for a in agents_involved) if len(agents_involved) > 0 else "None"
+        
+        # Calculate Percentages
+        dev_pct = (dev_count / total) * 100 if total > 0 else 0
+        agent_pct = (agent_count / total) * 100 if total > 0 else 0
+        
+        summary_list.append({
+            "Project": project,
+            "Language": lang,
+            "Agent": agent_str,
+            "Total Merged Commits": total,
+            "Merged Commits (Developer) %": f"{dev_pct:.2f}%",
+            "Merged Commits (Agent) %": f"{agent_pct:.2f}%"
+        })
+        
+    return pd.DataFrame(summary_list)
+
 def main():
+    repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
+    pr_df = pd.read_csv(os.path.join(aidev_path, "pull_request.csv"))
+    merged_prs = get_merged_prs(pr_df, repo_df)
+    
     # Read the input CSV
     input_csv = f"{results_01_path}/q3plus_projects_by_language.csv"
     print(f"Reading {input_csv}...")
@@ -205,10 +228,19 @@ def main():
     
     # Prepare output data
     output_data = []
-    PROPORTION_CUT = 0.4
-    
+    START_CUT = 0.35
+    END_CUT = 0.65
+    MIN_TOTAL_PRS = 50
+
     for idx, row in df.iterrows():
-        if row['prop_num_prs'] < PROPORTION_CUT:
+        current_prop = row.get('prop_num_prs', 0)
+        current_total = row.get('number_prs_merged_up_to_date', 0)
+
+        cut_condition = (current_prop >= START_CUT) and (current_prop <= END_CUT)
+        min_condition = current_total >= MIN_TOTAL_PRS
+
+        # Skip if conditions are met
+        if not cut_condition or not min_condition:
             continue
 
         repo = row["full_name"]
@@ -217,7 +249,7 @@ def main():
         
         print(f"\n[{idx + 1}/{len(df)}] Processing {repo} (all PRs up to #{max_pr_number})...")
         
-        # Get all merged PRs up to max_pr_number using the new function
+        # Get all merged PRs up to max_pr_number using the function
         prs_list = get_all_merged_prs_until(merged_prs, repo, max_pr_number, language, token)
         
         # Add all PRs to output data
@@ -228,17 +260,29 @@ def main():
     # Create output DataFrame
     output_df = pd.DataFrame(output_data)
     
-    # Save to CSV
+    # Save the detailed PR data to CSV
     output_path = os.path.join(results_02_path, "projects_with_pr_sha.csv")
     output_df.to_csv(output_path, index=False)
     
-    print(f"\n✓ CSV saved to: {output_path}")
+    print(f"\n✓ Main CSV saved to: {output_path}")
     print(f"  Total rows: {len(output_df)}")
     print(f"  Rows with SHA: {output_df['sha'].notna().sum()}")
-    print(f"  Rows without SHA: {output_df['sha'].isna().sum() + (output_df['sha'] == '').sum()}")
-    print(f"  Rows with author: {output_df['author'].notna().sum() + (output_df['author'] != '').sum()}")
-    print(f"  Rows without author: {(output_df['author'].isna() | (output_df['author'] == '')).sum()}")
+    print("-" * 60)
+
+    # === GENERATE AND SAVE SUMMARY CSV ===
+    if not output_df.empty:
+        summary_df = generate_summary_table(output_df)
+        
+        # Define output path for the summary
+        summary_csv_path = os.path.join(results_02_path, "projects_summary_stats.csv")
+        
+        # Save to CSV
+        summary_df.to_csv(summary_csv_path, index=False)
+        
+        print(f"\n✓ Summary CSV saved to: {summary_csv_path}")
+        print("  (Contains percentage breakdown of Developer vs Agent commits per project)")
+    else:
+        print("\nNo data to summarize.")
 
 if __name__ == "__main__":
     main()
-
