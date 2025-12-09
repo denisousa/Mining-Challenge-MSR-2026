@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import warnings
 import json
 import time
@@ -10,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 warnings.filterwarnings("ignore")
+sns.set_style("whitegrid")
 
 def get_merged_pr_counts_batch(repo_list: list[str], token: str, batch_size: int = 50) -> dict[str, int]:
     """Recupera a contagem total de PRs para uma lista de repos usando um único request por lote."""
@@ -255,3 +257,197 @@ def export_q3plus_projects_csv(
     q3plus_df.to_csv(output_path, index=False)
     print(f"\nCSV saved as: {output_path}")
     return q3plus_df
+
+def create_boxplot_merged_prs(
+    merged_prs_per_language: pd.DataFrame,
+    output_dir: str = "01_results/figures"
+) -> None:
+    """
+    Creates boxplots showing the distribution of merged pull requests:
+    1. Individual boxplot for each programming language
+    2. Combined boxplot with all languages together
+    
+    Args:
+        merged_prs_per_language: DataFrame with columns 'language' and 'num_prs'
+        output_dir: Directory where the figures will be saved
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Prepare data
+    df = merged_prs_per_language.copy()
+    
+    # Get language order and counts
+    language_counts = df.groupby('language').size().to_dict()
+    language_order = sorted(language_counts.keys())
+    
+    # Calculate global statistics
+    total_projects = len(df)
+    total_prs = df['num_prs'].sum()
+    mean_prs = df['num_prs'].mean()
+    median_prs = df['num_prs'].median()
+    std_prs = df['num_prs'].std()
+    q3_prs = df['num_prs'].quantile(0.75)
+    outliers = df[df['num_prs'] > q3_prs + 1.5 * (q3_prs - df['num_prs'].quantile(0.25))]
+    num_outliers = len(outliers)
+    q3_plus = len(df[df['num_prs'] >= q3_prs])
+    
+    # === 1. Create individual boxplots for each language ===
+    print("\n📊 Generating individual boxplots for each language...")
+    for lang in language_order:
+        lang_data = df[df['language'] == lang]['num_prs'].values
+        n = language_counts[lang]
+        lang_mean = lang_data.mean()
+        lang_median = np.median(lang_data)
+        lang_std = lang_data.std()
+        
+        fig, ax = plt.subplots(figsize=(10, 7))
+        
+        bp = ax.boxplot(
+            [lang_data],
+            labels=[lang],
+            patch_artist=True,
+            showfliers=True,
+            notch=False,
+            widths=0.5
+        )
+        
+        # Customize color
+        bp['boxes'][0].set_facecolor(plt.cm.Set3(language_order.index(lang) / len(language_order)))
+        bp['boxes'][0].set_alpha(0.7)
+        
+        # Add count annotation
+        ax.text(1, ax.get_ylim()[1] * 0.95, f'n={n}', 
+                ha='center', va='top', fontsize=12, fontweight='bold')
+        
+        # Add statistics summary box
+        stats_text = f'Mean: {lang_mean:.1f}\nMedian: {lang_median:.1f}\nStd Dev: {lang_std:.1f}'
+        ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+                fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        # Styling
+        ax.set_title(f'Distribution of Merged PRs - {lang}', 
+                     fontsize=14, fontweight='bold', pad=15)
+        ax.set_ylabel('Number of Merged Pull Requests', fontsize=11, fontweight='bold')
+        ax.grid(axis='y', alpha=0.3, linestyle='--')
+        plt.tight_layout()
+        
+        # Save individual figure
+        output_path = os.path.join(output_dir, f'boxplot_{lang.lower()}.png')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"  ✓ {lang}: {output_path}")
+        plt.close()
+    
+    # === 2. Create combined boxplot with all languages ===
+    print("\n📊 Generating combined boxplot with all languages...")
+    fig, ax = plt.subplots(figsize=(16, 9))
+    
+    # Prepare data for each language
+    data_by_language = [df[df['language'] == lang]['num_prs'].values for lang in language_order]
+    
+    # Create boxplot with all languages
+    bp = ax.boxplot(
+        data_by_language,
+        labels=language_order,
+        patch_artist=True,
+        showfliers=True,
+        notch=False,
+        widths=0.6
+    )
+    
+    # Customize boxplot colors
+    colors = plt.cm.Set3(np.linspace(0, 1, len(language_order)))
+    for patch, color in zip(bp['boxes'], colors):
+        patch.set_facecolor(color)
+        patch.set_alpha(0.7)
+    
+    # Add count annotations above each boxplot
+    y_max = ax.get_ylim()[1]
+    for i, lang in enumerate(language_order, 1):
+        n = language_counts[lang]
+        ax.text(i, y_max * 0.98, f'n={n}', 
+                ha='center', va='top', fontsize=10, fontweight='bold')
+    
+    # Add global statistics summary box
+    stats_text = (
+        f'Statistics Summary:\n'
+        f'Projects: {total_projects}\n'
+        f'Total PRs: {int(total_prs):,}\n'
+        f'Mean: {mean_prs:.1f}\n'
+        f'Median: {median_prs:.1f}\n'
+        f'Std Dev: {std_prs:.1f}\n'
+        f'Outliers: {num_outliers}\n'
+        f'PRs from Q3+: {q3_plus:,}'
+    )
+    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+            fontsize=11, verticalalignment='top', fontweight='bold',
+            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.9, edgecolor='navy', linewidth=2))
+    
+    # Styling
+    ax.set_title('Distribution of Merged Pull Requests by Programming Language', 
+                 fontsize=16, fontweight='bold', pad=20)
+    ax.set_xlabel('Programming Language', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Number of Merged Pull Requests', fontsize=12, fontweight='bold')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+    plt.tight_layout()
+    
+    # Save combined figure
+    output_path = os.path.join(output_dir, 'boxplot_all_languages.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"  ✓ Combined: {output_path}")
+    plt.close()
+    
+    # === 3. Create single unified boxplot (all languages combined) ===
+    print("\n📊 Generating unified boxplot (all languages combined)...")
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Get all PRs data regardless of language
+    all_prs_data = df['num_prs'].values
+    
+    # Create single boxplot
+    bp = ax.boxplot(
+        [all_prs_data],
+        labels=['All Languages'],
+        patch_artist=True,
+        showfliers=True,
+        notch=False,
+        widths=0.5
+    )
+    
+    # Customize color
+    bp['boxes'][0].set_facecolor('lightcoral')
+    bp['boxes'][0].set_alpha(0.7)
+    
+    # Add count annotation
+    ax.text(1, ax.get_ylim()[1] * 0.95, f'n={total_projects}', 
+            ha='center', va='top', fontsize=12, fontweight='bold')
+    
+    # Add comprehensive statistics summary box
+    stats_text = (
+        f'Statistics Summary:\n'
+        f'Projects: {total_projects}\n'
+        f'Total PRs: {int(total_prs):,}\n'
+        f'Mean: {mean_prs:.1f}\n'
+        f'Median: {median_prs:.1f}\n'
+        f'Std Dev: {std_prs:.1f}\n'
+        f'Outliers: {num_outliers}\n'
+        f'PRs from Q3+: {q3_plus:,}'
+    )
+    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+            fontsize=11, verticalalignment='top', fontweight='bold',
+            bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9, edgecolor='darkorange', linewidth=2))
+    
+    # Styling
+    ax.set_title('Distribution of Merged Pull Requests\n(All Programming Languages Combined)', 
+                 fontsize=14, fontweight='bold', pad=20)
+    ax.set_ylabel('Number of Merged Pull Requests', fontsize=12, fontweight='bold')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+    plt.tight_layout()
+    
+    # Save unified figure
+    output_path = os.path.join(output_dir, 'boxplot_unified.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"  ✓ Unified: {output_path}")
+    plt.close()
+    
+    print(f"\n✅ All boxplots saved in: {output_dir}")

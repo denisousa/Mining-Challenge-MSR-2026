@@ -60,30 +60,6 @@ def get_pr_merged_sha(repo, pr_number, token):
         logging.error(f"Error fetching commits for {repo} PR #{pr_number}: {e}")
         return None
 
-def get_pr_author(repo, pr_number, token):
-    """
-    Get the author (user) of a pull request via GitHub API.
-    Returns the login username of the PR author.
-    """
-    url = f'https://api.github.com/repos/{repo}/pulls/{pr_number}'
-    headers = {'Authorization': f'token {token}'} if token else {}
-    
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            pr_data = response.json()
-            user = pr_data.get("user")
-            if user:
-                return user.get("login")
-        else:
-            print(f"  Warning: Failed to fetch PR info for {repo} PR #{pr_number} (Status: {response.status_code})")
-            logging.error(f"Failed to fetch PR info for {repo} PR #{pr_number} (Status: {response.status_code})")
-            return None
-    except Exception as e:
-        print(f"  Error fetching PR info for {repo} PR #{pr_number}: {e}")
-        logging.error(f"Error fetching PR info for {repo} PR #{pr_number}: {e}")
-        return None
-
 def get_all_merged_prs_until(df, repo, pr_id, language, token=None):
     """
     Get all merged pull requests for a GitHub repository up to a specific PR ID.
@@ -150,7 +126,8 @@ def get_all_merged_prs_until(df, repo, pr_id, language, token=None):
                         "pr_number": pr_number,
                         "sha": sha if sha else "",
                         "author": author if author else "",
-                        "author_aidev": author_aidev
+                        "author_aidev": author_aidev,
+                        "merged_pr": pr['merge_commit_sha']
                     }
                     
                     prs_list.append(pr_info)

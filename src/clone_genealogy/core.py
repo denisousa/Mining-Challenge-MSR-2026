@@ -19,10 +19,15 @@ from clone_genealogy.git_operations import SetupRepo, GitCheckout, GitFecth
 from clone_genealogy.prints_operations import printError, printInfo
 from clone_genealogy.compute_time import timed, timeToString
 from clone_genealogy.git_operations import get_last_merged_pr_commit
+from clone_genealogy.clean_py_code import process_directory_py
+from clone_genealogy.clean_cs_code import process_directory_cs
 from dotenv import load_dotenv
+
 
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
+
+os.makedirs(results_03_path, exist_ok=True)
 
 log_file = f'{results_03_path}/errors.log'
 if os.path.exists(log_file):
@@ -91,7 +96,7 @@ def GetPattern(v1: CloneVersion, v2: CloneVersion):
 
     return (evolution, change)
 
-def PrepareSourceCode(ctx: "Context", language: str) -> bool:
+def PrepareSourceCode(ctx: "Context", language: str, hash_index) -> bool:
     paths = ctx.paths
     print("Preparing source code")
     found = False
@@ -99,6 +104,7 @@ def PrepareSourceCode(ctx: "Context", language: str) -> bool:
     repo_root = os.path.abspath(paths.repo_dir)
     if not os.path.isdir(repo_root):
         printError(f"Repository directory not found: {repo_root}")
+        logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'PrepareSourceCode' | Error: {e}")
         return False
 
     # Reset output dirs
@@ -135,8 +141,7 @@ def PrepareSourceCode(ctx: "Context", language: str) -> bool:
         try:
             shutil.copy2(str(src), os.path.join(dst_dir, src.name))
         except:
-            # Ignore copy errors
-            pass
+            logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'PrepareSourceCode' | Copy file: {str(src)} | Error: {e}")
         else:
             found = True
 
@@ -147,48 +152,56 @@ def PrepareSourceCode(ctx: "Context", language: str) -> bool:
 # Clone detection (cross‑platform)
 # =========================
 
-def RunCloneDetection(ctx: "Context", language: str):
-    paths = ctx.paths
-    print("Starting clone detection:")
+def RunCloneDetection(ctx: "Context", hash_index: str, language: str):
+    try:
+        paths = ctx.paths
+        print("Starting clone detection:")
 
-    # Normalize paths
-    out_dir = Path(paths.clone_detector_dir)
-    out_xml = Path(paths.clone_detector_xml)
-    data_dir = Path(paths.data_dir)
+        # Normalize paths
+        out_dir = Path(paths.clone_detector_dir)
+        out_xml = Path(paths.clone_detector_xml)
+        data_dir = Path(paths.data_dir)
 
-    # Prepare output folder (clean files, keep folder)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for item in out_dir.iterdir():
-        if item.is_file():
-            item.unlink()
-    out_xml.parent.mkdir(parents=True, exist_ok=True)
+        # Prepare output folder (clean files, keep folder)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for item in out_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+        out_xml.parent.mkdir(parents=True, exist_ok=True)
 
-    out_dir = Path(paths.clone_detector_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for item in out_dir.iterdir():
-        if item.is_file():
-            item.unlink()
+        out_dir = Path(paths.clone_detector_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for item in out_dir.iterdir():
+            if item.is_file():
+                item.unlink()
 
-    print(" >>> Running nicad6...")
-    subprocess.run(["./nicad6", "functions", language, paths.prod_data_dir],
-                cwd="NiCad",
-                check=True)
+        if language == "py":
+            process_directory_py(paths.prod_data_dir)
+        elif language == "cs":
+            process_directory_cs(paths.prod_data_dir)
 
-    nicad_xml = f"{paths.prod_data_dir}_functions-clones/production_functions-clones-0.20-classes.xml"
-    shutil.move(nicad_xml, paths.clone_detector_xml)
-    clones_dir = Path(f"{paths.prod_data_dir}_functions-clones")
-    shutil.rmtree(clones_dir, ignore_errors=True)
+        print(" >>> Running nicad6...")
+        subprocess.run(["./nicad6", "functions", language, paths.prod_data_dir],
+                    cwd="NiCad",
+                    check=True)
 
-    data_dir = Path(ctx.paths.data_dir)
-    for log_file in data_dir.glob("*.log"):
-        try:
-            log_file.unlink()
-        except FileNotFoundError:
-            pass
-        except PermissionError:
-            pass
+        nicad_xml = f"{paths.prod_data_dir}_functions-clones/production_functions-clones-0.20-classes.xml"
+        shutil.move(nicad_xml, paths.clone_detector_xml)
+        clones_dir = Path(f"{paths.prod_data_dir}_functions-clones")
+        shutil.rmtree(clones_dir, ignore_errors=True)
 
-    print("Finished clone detection.\n")
+        data_dir = Path(ctx.paths.data_dir)
+        for log_file in data_dir.glob("*.log"):
+            try:
+                log_file.unlink()
+            except FileNotFoundError:
+                pass
+            except PermissionError:
+                pass
+
+        print("Finished clone detection.\n")
+    except Exception as e:
+        logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'RunCloneDetection' | Error: {e}")
 
 
 def parseCloneClassFile(cloneclass_filename: str) -> List[CloneClass]:
@@ -213,35 +226,39 @@ def parseCloneClassFile(cloneclass_filename: str) -> List[CloneClass]:
         raise e
     return cloneclasses
 
-def RunGenealogyAnalysis(ctx: "Context", commitNr: int, hash_: str, author_pr: str):
-    paths, st = ctx.paths, ctx.state
-    print(f"Extract Code Code Genealogy (CCG) - Hash Commit {hash_}")
-    pcloneclasses = parseCloneClassFile(paths.clone_detector_xml)
+def RunGenealogyAnalysis(ctx: "Context", commitNr: int, hash_: str, author_pr: str, hash_index: str):
+    try:
+        paths, st = ctx.paths, ctx.state
+        print(f"Extract Code Code Genealogy (CCG) - Hash Commit {hash_}")
+        pcloneclasses = parseCloneClassFile(paths.clone_detector_xml)
 
-    if not st.genealogy_data:
-        for pcc in pcloneclasses:
-            v = CloneVersion(pcc, hash_, commitNr, author_pr)
-            l = Lineage()
-            l.versions.append(v)
-            st.genealogy_data.append(l)
-    else:
-        for pcc in pcloneclasses:
-            found = False
-            for lineage in st.genealogy_data:
-                if lineage.matches(pcc):
-
-                    if lineage.versions[-1].nr == commitNr:
-                        continue
-
-                    evolution, change = GetPattern(lineage.versions[-1], CloneVersion(pcc))
-                    lineage.versions.append(CloneVersion(pcc, hash_, commitNr, author_pr, evolution, change))
-                    found = True
-                    break
-            if not found:
+        if not st.genealogy_data:
+            for pcc in pcloneclasses:
                 v = CloneVersion(pcc, hash_, commitNr, author_pr)
                 l = Lineage()
                 l.versions.append(v)
                 st.genealogy_data.append(l)
+        else:
+            for pcc in pcloneclasses:
+                found = False
+                for lineage in st.genealogy_data:
+                    if lineage.matches(pcc):
+
+                        if lineage.versions[-1].nr == commitNr:
+                            continue
+
+                        evolution, change = GetPattern(lineage.versions[-1], CloneVersion(pcc))
+                        lineage.versions.append(CloneVersion(pcc, hash_, commitNr, author_pr, evolution, change))
+                        found = True
+                        break
+                if not found:
+                    v = CloneVersion(pcc, hash_, commitNr, author_pr)
+                    l = Lineage()
+                    l.versions.append(v)
+                    st.genealogy_data.append(l)
+    except Exception as e:
+        logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'RunGenealogyAnalysis' | Error: {e}")
+
 
 def build_no_clones_message(detector: Optional[str]) -> str:
     detector_name = (detector or "unspecified").strip() or "unspecified"
@@ -351,16 +368,16 @@ def get_clone_genealogy(full_name, merged_commits) -> str:
         )
 
         # Ensure we are at the correct commit
-        GitFecth(commit_pr, ctx)
-        GitCheckout(commit_pr, ctx)
+        GitFecth(commit_pr, ctx, hash_index, logging)
+        GitCheckout(commit_pr, ctx, hash_index, logging)
 
         # Prepare source code
-        if not PrepareSourceCode(ctx, language):
+        if not PrepareSourceCode(ctx, language, hash_index):
             logging.error(f"Don't have files '{language}' type in {full_name} (PR #{number_pr})")
             continue
 
-        RunCloneDetection(ctx, language)
-        RunGenealogyAnalysis(ctx, hash_index, commit_pr, author_pr)
+        RunCloneDetection(ctx, hash_index, language)
+        RunGenealogyAnalysis(ctx, hash_index, commit_pr, author_pr, hash_index)
         WriteLineageFile(ctx, ctx.state.genealogy_data, paths.genealogy_xml)
 
         clone_density_by_repo = compute_clone_density(ctx, language, repo_name, git_url, number_pr, commit_pr, author_pr)

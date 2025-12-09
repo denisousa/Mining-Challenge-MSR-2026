@@ -6,9 +6,59 @@ import xml.etree.ElementTree as ET
 # --- Configuration ---
 INPUT_FOLDER = "03_results"
 OUTPUT_FOLDER = "06_results"
+PR_CSV_PATH = "02_results/projects_with_pr_sha.csv"
 
 # Create output directory if it doesn't exist
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+# Load PR counts for each project
+def load_pr_counts():
+    """
+    Loads the PR CSV and calculates the final nr for each project.
+    Returns a dictionary: {full_name: final_nr}
+    """
+    df = pd.read_csv(PR_CSV_PATH)
+    # Count PRs per project and add 1
+    pr_counts = df.groupby('full_name').size().to_dict()
+    # final_nr = number of PRs + 1
+    return {project: count + 1 for project, count in pr_counts.items()}
+
+# Load PR counts at module level
+PROJECT_FINAL_NR = load_pr_counts()
+
+def extract_project_info(filename):
+    """
+    Extracts language and full_name from XML filename.
+    Example: 'cs_OpenAI_Codex_wieslawsoltes_Dock.xml' 
+    -> language='C#', full_name='wieslawsoltes/Dock'
+    """
+    # Remove .xml extension
+    name = filename.replace('.xml', '')
+    
+    # Split by underscore
+    parts = name.split('_')
+    
+    if len(parts) < 4:
+        return None, None
+    
+    # Language mapping
+    lang_map = {
+        'cs': 'C#',
+        'py': 'Python',
+        'java': 'Java',
+        'rb': 'Ruby',
+        'php': 'PHP'
+    }
+    
+    language = lang_map.get(parts[0])
+    
+    # Author and repo are the last two parts before extension
+    # Handle cases with underscores in author/repo names
+    author = parts[-2]
+    repo = parts[-1]
+    full_name = f"{author}/{repo}"
+    
+    return language, full_name
 
 def analyze_clone_evolution(file_path):
     """
@@ -21,19 +71,18 @@ def analyze_clone_evolution(file_path):
         print(f"Error reading XML: {file_path}")
         return None
 
-    lineage_status = []
+    # Extract project information from filename
+    filename = os.path.basename(file_path)
+    language, full_name = extract_project_info(filename)
     
-    # 1. Find the highest 'nr' in the entire file (Final Project Version)
-    all_versions_nr = []
-    for version in root.findall('.//version'):
-        nr = version.get('nr')
-        if nr:
-            all_versions_nr.append(int(nr))
-            
-    if not all_versions_nr:
-        return None # Empty file or no versions found
-        
-    max_project_nr = max(all_versions_nr)
+    if not full_name or full_name not in PROJECT_FINAL_NR:
+        print(f"Warning: Could not find PR count for project in {filename}")
+        return None
+    
+    # Get the final nr from PR count
+    max_project_nr = PROJECT_FINAL_NR[full_name]
+    
+    lineage_status = []
 
     # 2. Analyze each lineage
     for i, lineage in enumerate(root.findall('lineage')):

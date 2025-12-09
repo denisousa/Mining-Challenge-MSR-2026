@@ -34,7 +34,6 @@ print(
     f"Unique repositories by language {list(LANGUAGES.keys())} in AIDev: {unique_repos_count}"
 )
 
-
 # === Count merged PRs per project (grouped by language) ===
 merged_prs_per_language = (
     merged_prs.groupby(["full_name", "language"])
@@ -43,23 +42,25 @@ merged_prs_per_language = (
     .sort_values(by=["language", "num_prs"], ascending=[True, False])
 )
 
-# === Count merged PRs per project (grouped by language and agent) ===
-merged_prs_per_language_and_agent = (
-    merged_prs.groupby(["full_name", "language", "agent"])
-    .size()
-    .reset_index(name="num_prs")
-    .sort_values(by=["language", "num_prs"], ascending=[True, False])
-)
+print("\n=== Number of MERGED PRs per project (grouped by language) ===")
+print(merged_prs_per_language.head())
 
-# Count unique agents per project
-agent_counts = merged_prs.groupby("full_name")["agent"].nunique()
+# # === Count merged PRs per project (grouped by language and agent) ===
+# merged_prs_per_language_and_agent = (
+#     merged_prs.groupby(["full_name", "language", "agent"])
+#     .size()
+#     .reset_index(name="num_prs")
+#     .sort_values(by=["language", "num_prs"], ascending=[True, False])
+# )
 
-# Filter only those with > 1 agent
-mixed_projects = agent_counts[agent_counts > 1]
+# # Count unique agents per project
+# agent_counts = merged_prs.groupby("full_name")["agent"].nunique()
 
-print("Projects with multiple agents:")
-print(mixed_projects)
+# # Filter only those with > 1 agent
+# mixed_projects = agent_counts[agent_counts > 1]
 
+# print("Projects with multiple agents:")
+# print(mixed_projects)
 
 latest_pr_per_repo = (
     merged_prs.dropna(subset=["full_name", "language", "merged_at", "number"])
@@ -69,25 +70,24 @@ latest_pr_per_repo = (
     .rename(columns={"merged_at": "latest_merged_at"})
 )
 
-all_agents = merged_prs['agent'].unique().tolist()
+# all_agents = merged_prs['agent'].unique().tolist()
 
-for agent_aidev in all_agents:
-    df_agent = merged_prs_per_language_and_agent[merged_prs_per_language_and_agent["agent"] == agent_aidev]
+# for agent_aidev in all_agents:
+#     df_agent = merged_prs_per_language_and_agent[merged_prs_per_language_and_agent["agent"] == agent_aidev]
 
-    # Q3+
-    q3plus_projects = export_q3plus_projects_csv(df_agent)
-    q3plus_projects = q3plus_projects.merge(
-        latest_pr_per_repo, on=["full_name", "language"], how="left"
-    )
-    q3plus_projects = enrich_projects_with_github_counts_until_date(
-        q3plus_projects, date_col="latest_merged_at"
-    )
-    q3plus_outpath = os.path.join(results_01_path, f"q3plus_projects_by_{agent_aidev}_.csv")
-    q3plus_projects.to_csv(q3plus_outpath, index=False)
+#     # Q3+
+#     q3plus_projects = export_q3plus_projects_csv(df_agent)
+#     q3plus_projects = q3plus_projects.merge(
+#         latest_pr_per_repo, on=["full_name", "language"], how="left"
+#     )
+#     q3plus_projects = enrich_projects_with_github_counts_until_date(
+#         q3plus_projects, date_col="latest_merged_at"
+#     )
+#     q3plus_outpath = os.path.join(results_01_path, f"q3plus_projects_by_{agent_aidev}_.csv")
+#     q3plus_projects.to_csv(q3plus_outpath, index=False)
 
-    print("\n=== Number of MERGED PRs per project (grouped by language) ===")
-    print(merged_prs_per_language.head())
-
+#     print("\n=== Number of MERGED PRs per project (grouped by language) ===")
+#     print(merged_prs_per_language.head())
 
 # Q3+
 q3plus_projects = export_q3plus_projects_csv(merged_prs_per_language)
@@ -100,22 +100,18 @@ q3plus_projects = enrich_projects_with_github_counts_until_date(
 q3plus_outpath = os.path.join(results_01_path, "q3plus_projects_by_language.csv")
 q3plus_projects.to_csv(q3plus_outpath, index=False)
 
-print("\n=== Number of MERGED PRs per project (grouped by language) ===")
-print(merged_prs_per_language.head())
+# # === Aggregate: number of projects and total merged PRs per language ===
+# language_summary = (
+#     merged_prs_per_language.groupby("language")
+#     .agg(num_projects=("full_name", "nunique"), total_prs=("num_prs", "sum"))
+#     .reset_index()
+#     .sort_values("language")
+# )
 
+# print("\n=== Summary: number of projects and total MERGED PRs per language ===")
+# print(language_summary)
 
-# === Aggregate: number of projects and total merged PRs per language ===
-language_summary = (
-    merged_prs_per_language.groupby("language")
-    .agg(num_projects=("full_name", "nunique"), total_prs=("num_prs", "sum"))
-    .reset_index()
-    .sort_values("language")
-)
-
-print("\n=== Summary: number of projects and total MERGED PRs per language ===")
-print(language_summary)
-
-# === Save CSV (full dataset) ===
-output_path = f"{results_01_path}/projects_merged_prs.csv"
-language_summary.to_csv(output_path, index=False)
-print(f"\nCSV saved as: {output_path}")
+# # === Save CSV (full dataset) ===
+# output_path = f"{results_01_path}/projects_merged_prs.csv"
+# language_summary.to_csv(output_path, index=False)
+# print(f"\nCSV saved as: {output_path}")

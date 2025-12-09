@@ -11,6 +11,7 @@ from scipy.stats import chi2_contingency
 
 # Configuration
 INPUT_FOLDER = "03_results"
+OUTPUT_FOLDER = "05_results"
 
 def parse_filename(filename):
     """
@@ -95,6 +96,7 @@ def load_data(folder_path):
 def run_chi_square(df, context_name, pattern_column):
     """
     Performs the Chi-Square test for a specific pattern column.
+    Returns a dictionary with the test results.
     """
     print(f"  > Analyzing {pattern_column} ({context_name})...")
     
@@ -104,21 +106,43 @@ def run_chi_square(df, context_name, pattern_column):
     # Check if we have enough variance
     if contingency_table.shape[0] < 2 or contingency_table.shape[1] < 2:
         print(f"    [!] Not enough variance to run statistics (Data is uniform).")
-        # print(f"    Distribution:\n{contingency_table}\n")
-        return
+        return {
+            'context': context_name,
+            'pattern_type': pattern_column,
+            'chi2': None,
+            'p_value': None,
+            'dof': None,
+            'significant': False,
+            'notes': 'Not enough variance'
+        }
 
     # Run Test
     chi2, p, dof, expected = chi2_contingency(contingency_table)
     
     print(f"    p-value: {p:.5f}")
+    
+    result = {
+        'context': context_name,
+        'pattern_type': pattern_column,
+        'chi2': chi2,
+        'p_value': p,
+        'dof': dof,
+        'significant': p < 0.05,
+        'notes': ''
+    }
+    
     if p < 0.05:
         print(f"    *** RESULT: SIGNIFICANT difference found between Developer and Agent. ***")
         
         # Calculate percentages to see WHO performs more of which pattern
         percentages = pd.crosstab(df['Author'], df[pattern_column], normalize='index') * 100
         print(f"    Proportions (%):\n{percentages.round(2)}\n")
+        result['notes'] = 'Significant difference found'
     else:
         print(f"    Result: No significant difference observed.\n")
+        result['notes'] = 'No significant difference'
+    
+    return result
 
 def main():
     # 1. Load Data
@@ -131,6 +155,12 @@ def main():
     if df.empty:
         print("No valid data found in XML files.")
         return
+
+    # Create output folder
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    
+    # List to store all statistical test results
+    all_results = []
 
     # 2. Iterate through each Language (Per Language Analysis)
     unique_languages = df['Language'].unique()
@@ -155,8 +185,18 @@ def main():
             continue
 
         # Statistical Tests
-        run_chi_square(lang_df, language, 'ChangePattern')
-        run_chi_square(lang_df, language, 'EvolutionPattern')
+        result_change = run_chi_square(lang_df, language, 'ChangePattern')
+        result_evolution = run_chi_square(lang_df, language, 'EvolutionPattern')
+        
+        if result_change:
+            result_change['n_projects'] = n_projects
+            result_change['n_records'] = len(lang_df)
+            all_results.append(result_change)
+        
+        if result_evolution:
+            result_evolution['n_projects'] = n_projects
+            result_evolution['n_records'] = len(lang_df)
+            all_results.append(result_evolution)
         
         print("-" * 30)
 
@@ -169,11 +209,30 @@ def main():
     print(f"Total Projects: {total_projects}")
     print(f"Total Records: {len(df)}")
     
-    run_chi_square(df, "ALL DATA", 'ChangePattern')
-    run_chi_square(df, "ALL DATA", 'EvolutionPattern')
+    result_change_all = run_chi_square(df, "ALL_DATA", 'ChangePattern')
+    result_evolution_all = run_chi_square(df, "ALL_DATA", 'EvolutionPattern')
+    
+    if result_change_all:
+        result_change_all['n_projects'] = total_projects
+        result_change_all['n_records'] = len(df)
+        all_results.append(result_change_all)
+    
+    if result_evolution_all:
+        result_evolution_all['n_projects'] = total_projects
+        result_evolution_all['n_records'] = len(df)
+        all_results.append(result_evolution_all)
     
     print("="*50)
     print("Analysis Complete.")
+    
+    # 4. Save results to CSV
+    if all_results:
+        results_df = pd.DataFrame(all_results)
+        output_path = os.path.join(OUTPUT_FOLDER, "statistical_test_results.csv")
+        results_df.to_csv(output_path, index=False)
+        print(f"\n✓ Results saved to: {output_path}")
+    else:
+        print("\n[!] No results to save.")
 
 if __name__ == "__main__":
     main()

@@ -6,15 +6,15 @@ from utils.compute_time import timed
 from utils.languages import LANGUAGES
 from clone_genealogy.core import get_clone_genealogy
 
-DONT_EXECUTE = ["MontrealAI/AGI-Alpha-Agent-v0", "wieslawsoltes/Dock"]
+ONLY_EXECUTE = ["featureform/enrichmcp", "jscarle/LightResults", "wieslawsoltes/Xaml.Behaviors"]
 
 load_dotenv()
-token = os.getenv("GITHUB_TOKEN")
+token = os.getenv("GITHUB_TOKEN") 
 
 os.makedirs(results_03_path, exist_ok=True)
 
 # Main function to process the data
-@timed()
+@timed(results_03_path)
 def main():
     # === Load projects_with_pr_sha.csv ===
     csv_path = os.path.join(results_02_path, "projects_with_pr_sha.csv")
@@ -27,7 +27,8 @@ def main():
     projects_grouped = df_prs.groupby("full_name")
 
     for full_name, project_prs in projects_grouped:
-        if "flexile" not in full_name:
+
+        if full_name not in ONLY_EXECUTE:
             continue
 
         total_prs = len(project_prs)

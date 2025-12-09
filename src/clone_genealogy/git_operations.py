@@ -108,7 +108,7 @@ def SetupRepo(ctx: "Context"):
     Repo.clone_from(git_url, paths.repo_dir)
     print(" Repository setup complete.\n")
 
-def GitFecth(commit, ctx):
+def GitFecth(commit, ctx, hash_index, logging):
     repo_path = ctx.paths.repo_dir
     # Fetch the base commit
     print(f"  Fetch out commit {commit} ...")
@@ -116,10 +116,11 @@ def GitFecth(commit, ctx):
         subprocess.run(["git", "fetch", "origin", commit], cwd=repo_path, check=True)
         print(f"  ✔ Checked out to commit {commit}")
     except subprocess.CalledProcessError as e:
+        logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'GitFecth' | Error: {e}")
         printWarning(f"Git fetch/pull encountered an issue: {e}")
 
 
-def GitCheckout(commit, ctx):
+def GitCheckout(commit, ctx, hash_index, logging):
     repo_path = ctx.paths.repo_dir
 
     # Checkout the base commit
@@ -128,4 +129,5 @@ def GitCheckout(commit, ctx):
         subprocess.run(["git", "checkout", commit], cwd=repo_path, check=True)
         print(f"  ✔ Checked out to commit {commit}")
     except subprocess.CalledProcessError as e:
+        logging.error(f"Project: {ctx.git_url} | Index: {hash_index} | Function: 'GitCheckout' | Error: {e}")
         printWarning(f"Git checkout encountered an issue: {e} | commit {commit}")
