@@ -7,7 +7,7 @@ def run_nicad(git_repository_path, result_path):
                 cwd="NiCad",
                 check=True)
 
-    nicad_xml = f"{git_repository_path}_functions-clones/production_functions-clones-0.30-classes.xml"
+    nicad_xml = f"{git_repository_path}_functions-clones/production_functions-clones-0.20-classes.xml"
     shutil.move(nicad_xml, result_path)
     clones_dir = Path(f"{git_repository_path}_functions-clones")
     shutil.rmtree(clones_dir, ignore_errors=True)

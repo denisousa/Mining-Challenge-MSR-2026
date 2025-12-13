@@ -6,13 +6,12 @@ import subprocess
 from pathlib import Path
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
 from typing import List, Iterable, Optional
-from utils.folders_paths import results_03_path
 from clone_genealogy.CloneFragment import CloneFragment
 from clone_genealogy.CloneClass import CloneClass
 from clone_genealogy.CloneVersion import CloneVersion
 from clone_genealogy.Lineage import Lineage
+from dataclasses import dataclass, field
 from clone_genealogy.utils import safe_rmtree
 from clone_genealogy.clone_density import compute_clone_density, WriteCloneDensity
 from clone_genealogy.git_operations import SetupRepo, GitCheckout, GitFecth
@@ -21,6 +20,8 @@ from clone_genealogy.compute_time import timed, timeToString
 from clone_genealogy.git_operations import get_last_merged_pr_commit
 from clone_genealogy.clean_py_code import process_directory_py
 from clone_genealogy.clean_cs_code import process_directory_cs
+from clone_genealogy.clean_rb_code import process_directory_rb
+from utils.folders_paths import results_03_path
 from dotenv import load_dotenv
 
 
@@ -57,15 +58,17 @@ class Context:
     git_url: str
     state: State
 
-
 def GetPattern(v1: CloneVersion, v2: CloneVersion):
+    n_evo = 0
     evolution = "None"
     if len(v1.cloneclass.fragments) == len(v2.cloneclass.fragments):
         evolution = "Same"
     elif len(v1.cloneclass.fragments) > len(v2.cloneclass.fragments):
         evolution = "Subtract"
+        n_evo = len(v1.cloneclass.fragments) - len(v2.cloneclass.fragments)
     else:
         evolution = "Add"
+        n_evo = len(v2.cloneclass.fragments) - len(v1.cloneclass.fragments)
 
     def matches_count(a: Iterable[CloneFragment], b: Iterable[CloneFragment]):
         n = 0
@@ -77,24 +80,33 @@ def GetPattern(v1: CloneVersion, v2: CloneVersion):
         return n
 
     change = "None"
+    n_change = 0
+    nr_of_matches = matches_count(v1.cloneclass.fragments, v2.cloneclass.fragments)
     if evolution in ("Same", "Subtract"):
-        nr_of_matches = matches_count(v1.cloneclass.fragments, v2.cloneclass.fragments)
         if nr_of_matches == len(v2.cloneclass.fragments):
             change = "Same"
         elif nr_of_matches == 0:
             change = "Consistent"
+            n_change = len(v2.cloneclass.fragments)
         else:
             change = "Inconsistent"
+            n_change = len(v2.cloneclass.fragments) - nr_of_matches
+
     elif evolution == "Add":
-        nr_of_matches = matches_count(v2.cloneclass.fragments, v1.cloneclass.fragments)
         if nr_of_matches == len(v1.cloneclass.fragments):
             change = "Same"
         elif nr_of_matches == 0:
             change = "Consistent"
+            n_change = len(v2.cloneclass.fragments)
         else:
             change = "Inconsistent"
+            n_change = len(v2.cloneclass.fragments) - nr_of_matches
 
-    return (evolution, change)
+    v2_clones_loc = sum([frag.le - frag.ls for frag in v2.cloneclass.fragments])
+    v1_clones_loc = sum([frag.le - frag.ls for frag in v1.cloneclass.fragments])
+    clones_loc = v2_clones_loc - v1_clones_loc
+
+    return (evolution, change, n_evo, n_change, clones_loc)
 
 def PrepareSourceCode(ctx: "Context", language: str, hash_index) -> bool:
     paths = ctx.paths
@@ -179,6 +191,8 @@ def RunCloneDetection(ctx: "Context", hash_index: str, language: str):
             process_directory_py(paths.prod_data_dir)
         elif language == "cs":
             process_directory_cs(paths.prod_data_dir)
+        elif language == "rb":
+            process_directory_rb(paths.prod_data_dir)
 
         print(" >>> Running nicad6...")
         subprocess.run(["./nicad6", "functions", language, paths.prod_data_dir],
@@ -247,8 +261,8 @@ def RunGenealogyAnalysis(ctx: "Context", commitNr: int, hash_: str, author_pr: s
                         if lineage.versions[-1].nr == commitNr:
                             continue
 
-                        evolution, change = GetPattern(lineage.versions[-1], CloneVersion(pcc))
-                        lineage.versions.append(CloneVersion(pcc, hash_, commitNr, author_pr, evolution, change))
+                        evolution, change, n_evo, n_change, clones_loc = GetPattern(lineage.versions[-1], CloneVersion(pcc))
+                        lineage.versions.append(CloneVersion(pcc, hash_, commitNr, author_pr, evolution, change, n_evo, n_change, clones_loc))
                         found = True
                         break
                 if not found:

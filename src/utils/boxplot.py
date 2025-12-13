@@ -117,6 +117,7 @@ def enrich_projects_with_github_counts(
     cache_path: str = "01_results/github_pr_counts_cache.json",
     sleep_seconds: float = 0.2, # Não é mais usado, mas mantido p/ compatibilidade
 ) -> pd.DataFrame:
+    
     if token is None:
         token = os.getenv("GITHUB_TOKEN")
     if not token:
@@ -159,8 +160,6 @@ def enrich_projects_with_github_counts_until_date(
     projects_df: pd.DataFrame,
     date_col: str = "latest_merged_at",
     token: str | None = None,
-    cache_path: str = "01_results/github_pr_counts_until_cache.json",
-    sleep_seconds: float = 2,
 ) -> pd.DataFrame:
     if token is None:
         token = os.getenv("GITHUB_TOKEN")
@@ -175,35 +174,24 @@ def enrich_projects_with_github_counts_until_date(
     df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
     df["latest_merged_date"] = df[date_col].dt.date.astype(str)
 
-    os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
-    cache = {}
-    if os.path.exists(cache_path):
-        with open(cache_path, "r", encoding="utf-8") as f:
-            cache = json.load(f)
-
-    # Prepara lista de (repo, data) que faltam no cache
+    # Prepara lista de (repo, data) para buscar
     pairs_to_fetch = []
     unique_pairs = df[["full_name", "latest_merged_date"]].drop_duplicates().values.tolist()
     
     for repo, date_str in unique_pairs:
         if pd.isna(date_str): continue
-        key = f"{repo}@{date_str}"
-        if key not in cache:
-            pairs_to_fetch.append((repo, date_str))
+        pairs_to_fetch.append((repo, date_str))
 
     if pairs_to_fetch:
         print(f"Fetching time-based PR counts for {len(pairs_to_fetch)} items in batches...")
-        # === AQUI ESTÁ A MUDANÇA MÁGICA ===
-        new_results = get_until_date_counts_batch(pairs_to_fetch, token)
-        cache.update(new_results)
+        results = get_until_date_counts_batch(pairs_to_fetch, token)
+    else:
+        results = {}
 
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-
-    # Aplica os dados do cache ao DataFrame
+    # Aplica os dados ao DataFrame
     def get_val(row):
         k = f"{row['full_name']}@{row['latest_merged_date']}"
-        return cache.get(k, 0)
+        return results.get(k, 0)
 
     df["number_prs_merged_up_to_date"] = df.apply(get_val, axis=1)
 
@@ -252,10 +240,6 @@ def export_q3plus_projects_csv(
         .drop(columns=["q3"])
         .sort_values(["language", "num_prs"], ascending=[True, False])
     )
-
-    q3plus_df = enrich_projects_with_github_counts(q3plus_df, token=token)
-    q3plus_df.to_csv(output_path, index=False)
-    print(f"\nCSV saved as: {output_path}")
     return q3plus_df
 
 def create_boxplot_merged_prs(
