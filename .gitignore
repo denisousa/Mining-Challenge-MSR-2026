@@ -25,6 +25,9 @@ rq2/*
 09_results/*
 10_results/*
 11_results/*
+genealogy_results/*
+main_results/*
+temp/*
 *.rar
 *.zip
 

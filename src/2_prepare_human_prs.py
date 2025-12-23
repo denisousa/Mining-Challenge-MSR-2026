@@ -12,7 +12,7 @@ from typing import Dict, Optional
 import os
 import pandas as pd
 import requests
-from utils.folders_paths import aidev_path, results_01_path
+from utils.folders_paths import aidev_path, main_results
 from dotenv import load_dotenv
 import requests
 from requests.adapters import HTTPAdapter
@@ -20,7 +20,7 @@ from urllib3.util.retry import Retry
 from utils.languages import LANGUAGES
 
 load_dotenv()
-os.makedirs(results_01_path, exist_ok=True)
+os.makedirs(main_results, exist_ok=True)
 
 # === Load datasets ===
 print("Loading datasets...")
@@ -130,5 +130,5 @@ if __name__ == "__main__":
 
     human_prs_df['pr_type'] = 'human'
 
-    output_csv = os.path.join(results_01_path, "new_human_pull_request.csv")
+    output_csv = os.path.join(main_results, "new_human_pull_request.csv")
     human_prs_df.to_csv(output_csv, index=False)

@@ -1,12 +1,7 @@
-"""
-Analyze XML files from 03_results to count lineages and clones created by humans vs agents.
-"""
-
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from collections import defaultdict
 import pandas as pd
-
+from utils.folders_paths import genealogy_results_path, main_results
 
 def analyze_xml_file(xml_path):
     """
@@ -120,8 +115,8 @@ def analyze_xml_file(xml_path):
 
 
 def main():
-    results_dir = Path('/home/denis/Mini-Challenge-MSR-2026/03_results')
-    csv_path = Path('/home/denis/Mini-Challenge-MSR-2026/01_results/balanced_repositories.csv')
+    results_dir = Path(genealogy_results_path)
+    csv_path = Path(main_results) / "balanced_repositories.csv"
     
     # Load PR counts from CSV
     df_repos = pd.read_csv(csv_path)

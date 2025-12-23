@@ -2,10 +2,11 @@ import os
 import glob
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
+from utils.folders_paths import genealogy_results_path
 
 # --- Directory Configuration ---
-INPUT_FOLDER = '03_results'
-OUTPUT_FOLDER = '08_results'
+INPUT_FOLDER = genealogy_results_path
+OUTPUT_FOLDER = '09_results'
 
 # Ensure the output folder exists
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)

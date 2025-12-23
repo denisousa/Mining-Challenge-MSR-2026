@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from utils.folders_paths import results_01_path, aidev_path
+from utils.folders_paths import main_results, aidev_path
 from utils.compute_time import timed
 from utils.languages import LANGUAGES
 from clone_genealogy.core import get_clone_genealogy
@@ -9,22 +9,19 @@ from clone_genealogy.core import get_clone_genealogy
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN") 
 
-os.makedirs(results_01_path, exist_ok=True)
+os.makedirs(main_results, exist_ok=True)
 
 # Main function to process the data
-@timed(results_01_path)
+@timed(main_results)
 def main():
     # === Load projects_with_pr_sha.csv ===
-    csv_path = os.path.join(results_01_path, "human_agent_prs_with_commits.csv")
+    csv_path = os.path.join(main_results, "human_agent_prs_with_commits.csv")
     df_prs = pd.read_csv(csv_path)
     print(f"Loaded {len(df_prs)} PRs from {csv_path}")
 
     # === Group by full_name to process each project ===
     projects_grouped = df_prs.groupby("full_name")
     for full_name, project_prs in projects_grouped:
-        if "airbyte" not in full_name :
-            continue  # For testing, process only the 3rd project
-
         total_prs = len(project_prs)
         
         print(f"\n=== Processing project: {full_name} ({total_prs} PRs) ===")

@@ -1,17 +1,17 @@
 import os
 import pandas as pd
-from utils.folders_paths import results_01_path
+from utils.folders_paths import main_results
 from dotenv import load_dotenv
 
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
 
-os.makedirs(results_01_path, exist_ok=True)
+os.makedirs(main_results, exist_ok=True)
 
 # === Load datasets ===
 print("Loading datasets...")
-agent_prs_df = pd.read_csv(os.path.join(results_01_path, "new_agent_pull_request.csv"))
-human_prs_df = pd.read_csv(os.path.join(results_01_path, "new_human_pull_request.csv"))
+agent_prs_df = pd.read_csv(os.path.join(main_results, "new_agent_pull_request.csv"))
+human_prs_df = pd.read_csv(os.path.join(main_results, "new_human_pull_request.csv"))
 
 # Load repository metadata to attach programming languages
 repo_meta_path = os.path.join(os.path.abspath("AiDev_Dataset"), "repository.csv")
@@ -71,7 +71,7 @@ column_order = [
     'human_prs', 'agent_percentage', 'human_percentage'
 ]
 filtered = filtered.reindex(columns=column_order)
-output_csv = os.path.join(results_01_path, "balanced_repositories.csv")
+output_csv = os.path.join(main_results, "balanced_repositories.csv")
 filtered.to_csv(output_csv, index=False)
 
 # === Filter h_g_prs_merged to keep only repositories in filtered ===
@@ -86,6 +86,6 @@ h_g_prs_merged_filtered = h_g_prs_merged[h_g_prs_merged['full_name'].isin(filter
 print(f"After filtering by repository list: {len(h_g_prs_merged_filtered)} PRs")
 
 # Save filtered PRs to CSV
-filtered_prs_output = os.path.join(results_01_path, "human_agent_pull_request.csv")
+filtered_prs_output = os.path.join(main_results, "human_agent_pull_request.csv")
 h_g_prs_merged_filtered.to_csv(filtered_prs_output, index=False)
 print(f"\n✓ Filtered PRs saved to: {filtered_prs_output}")

@@ -21,16 +21,16 @@ from clone_genealogy.git_operations import get_last_merged_pr_commit
 from clone_genealogy.clean_py_code import process_directory_py
 from clone_genealogy.clean_cs_code import process_directory_cs
 from clone_genealogy.clean_rb_code import process_directory_rb
-from utils.folders_paths import results_03_path
+from utils.folders_paths import genealogy_results_path
 from dotenv import load_dotenv
 
 
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
 
-os.makedirs(results_03_path, exist_ok=True)
+os.makedirs(genealogy_results_path, exist_ok=True)
 
-log_file = f'{results_03_path}/errors.log'
+log_file = f'{genealogy_results_path}/errors.log'
 if os.path.exists(log_file):
     os.remove(log_file)  # D
 
@@ -413,6 +413,6 @@ def get_clone_genealogy(full_name, merged_commits) -> str:
 
     WriteLineageFile(ctx,
                     ctx.state.genealogy_data,
-                    f"{results_03_path}/{language}_{repo_complete_name}.xml")
+                    f"{genealogy_results_path}/{language}_{repo_complete_name}.xml")
 
     print("\nDONE")

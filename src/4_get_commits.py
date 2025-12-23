@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import requests
-from utils.folders_paths import aidev_path, results_01_path
+from utils.folders_paths import aidev_path, main_results
 from dotenv import load_dotenv
 
 
@@ -125,11 +125,11 @@ load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
 # sha, number, language = get_last_merged_pr_commit('microsoft/testfx', token)
 
-os.makedirs(results_01_path, exist_ok=True)
+os.makedirs(main_results, exist_ok=True)
 
 # === Load datasets ===
 print("Loading datasets...")
-human_agent_prs_df = pd.read_csv(os.path.join(results_01_path, "human_agent_pull_request.csv"))
+human_agent_prs_df = pd.read_csv(os.path.join(main_results, "human_agent_pull_request.csv"))
 repo_df = pd.read_csv(os.path.join(aidev_path, "repository.csv"))
 commits_df = pd.read_csv(os.path.join(aidev_path, "pr_commits.csv"))
 
@@ -256,7 +256,7 @@ all_prs_with_commits = all_prs_with_commits[['full_name', 'sha', 'author', 'pr_t
 print(f"Total records after adding repository commits: {len(all_prs_with_commits)}")
 
 # === Save to CSV ===
-output_csv = os.path.join(results_01_path, "human_agent_prs_with_commits.csv")
+output_csv = os.path.join(main_results, "human_agent_prs_with_commits.csv")
 all_prs_with_commits.to_csv(output_csv, index=False)
 print(f"\nSaved to: {output_csv}")
 

@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import xml.etree.ElementTree as ET
-from utils.folders_paths import results_03_path
+from utils.folders_paths import genealogy_results_path
 
 # Count lines of code
 def count_system_lines_of_code(directory, extension):
@@ -49,6 +49,6 @@ def compute_clone_density(ctx, language, repo_name, git_url, number_pr, commit_p
 
 def WriteCloneDensity(clone_density_rows, language, repo_complete_name):
     density_df = pd.DataFrame(clone_density_rows)
-    clone_density_path = os.path.join(results_03_path, f"{language}_{repo_complete_name}_clone_density.csv")
+    clone_density_path = os.path.join(genealogy_results_path, f"{language}_{repo_complete_name}_clone_density.csv")
     density_df.to_csv(clone_density_path, index=False)
     print(f"\nSaved clone density data to {clone_density_path}")

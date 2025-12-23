@@ -1,12 +1,11 @@
 import os
 import pandas as pd
-from utils.languages import LANGUAGES
-from utils.folders_paths import aidev_path, results_01_path
+from utils.folders_paths import aidev_path, main_results
 from dotenv import load_dotenv
 
 load_dotenv()
 token = os.getenv("GITHUB_TOKEN")
-os.makedirs(results_01_path, exist_ok=True)
+os.makedirs(main_results, exist_ok=True)
 
 # === Load datasets ===
 print("Loading datasets...")
@@ -28,5 +27,5 @@ merged_prs = pd.merge(
 if "id_x" in merged_prs.columns:
     merged_prs = merged_prs.rename(columns={"id_x": "id"})
 
-output_csv = os.path.join(results_01_path, "new_agent_pull_request.csv")
+output_csv = os.path.join(main_results, "new_agent_pull_request.csv")
 merged_prs.to_csv(output_csv, index=False)
