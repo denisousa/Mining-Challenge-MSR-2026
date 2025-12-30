@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 from git import Repo
-from clone_genealogy.utils import safe_rmtree
-from clone_genealogy.prints_operations import printInfo, printWarning
+from omniccg.utils import safe_rmtree
+from omniccg.prints_operations import printInfo, printWarning
 from typing import Union
 import subprocess
 import requests

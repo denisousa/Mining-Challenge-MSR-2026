@@ -1,5 +1,5 @@
-from clone_genealogy.code_operations import get_code_without_comments_and_blank_lines
-from clone_genealogy.hash_operations import generate_simhash, match_hashes
+from omniccg.code_operations import get_code_without_comments_and_blank_lines
+from omniccg.hash_operations import generate_simhash, match_hashes
 
 class CloneFragment:
     def __init__(self, file, ls, le):

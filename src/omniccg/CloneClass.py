@@ -1,6 +1,5 @@
 from typing import List
-from clone_genealogy.CloneFragment import CloneFragment
-
+from omniccg.CloneFragment import CloneFragment
 
 class CloneClass:
     def __init__(self):

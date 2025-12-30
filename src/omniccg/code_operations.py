@@ -1,4 +1,3 @@
-import hashlib
 from pathlib import Path
 
 def get_code_without_comments_and_blank_lines(file: str, ls: int, le: int) -> str:

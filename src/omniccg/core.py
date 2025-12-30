@@ -7,20 +7,20 @@ from pathlib import Path
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 from typing import List, Iterable, Optional
-from clone_genealogy.CloneFragment import CloneFragment
-from clone_genealogy.CloneClass import CloneClass
-from clone_genealogy.CloneVersion import CloneVersion
-from clone_genealogy.Lineage import Lineage
+from omniccg.CloneFragment import CloneFragment
+from omniccg.CloneClass import CloneClass
+from omniccg.CloneVersion import CloneVersion
+from omniccg.Lineage import Lineage
 from dataclasses import dataclass, field
-from clone_genealogy.utils import safe_rmtree
-from clone_genealogy.clone_density import compute_clone_density, WriteCloneDensity
-from clone_genealogy.git_operations import SetupRepo, GitCheckout, GitFecth
-from clone_genealogy.prints_operations import printError, printInfo
-from clone_genealogy.compute_time import timed, timeToString
-from clone_genealogy.git_operations import get_last_merged_pr_commit
-from clone_genealogy.clean_py_code import process_directory_py
-from clone_genealogy.clean_cs_code import process_directory_cs
-from clone_genealogy.clean_rb_code import process_directory_rb
+from omniccg.utils import safe_rmtree
+from omniccg.clone_density import compute_clone_density, WriteCloneDensity
+from omniccg.git_operations import SetupRepo, GitCheckout, GitFecth
+from omniccg.prints_operations import printError, printInfo
+from omniccg.compute_time import timed, timeToString
+from omniccg.git_operations import get_last_merged_pr_commit
+from omniccg.clean_py_code import process_directory_py
+from omniccg.clean_cs_code import process_directory_cs
+from omniccg.clean_rb_code import process_directory_rb
 from utils.folders_paths import genealogy_results_path
 from dotenv import load_dotenv
 
