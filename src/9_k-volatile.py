@@ -2,14 +2,13 @@ import os
 import glob
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
-from utils.folders_paths import genealogy_results_path
+from utils.folders_paths import genealogy_results_path, metrics_path
 
 # --- Directory Configuration ---
 INPUT_FOLDER = genealogy_results_path
-OUTPUT_FOLDER = '09_results'
 
 # Ensure the output folder exists
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+os.makedirs(metrics_path, exist_ok=True)
 
 def parse_and_plot(file_path):
     """
@@ -128,7 +127,7 @@ def parse_and_plot(file_path):
     
     # Save the file
     output_filename = f"{project_name}_volatility.png"
-    output_path = os.path.join(OUTPUT_FOLDER, output_filename)
+    output_path = os.path.join(metrics_path, output_filename)
     plt.savefig(output_path)
     plt.close() # Close figure to free memory
     

@@ -6,10 +6,11 @@ import glob
 import xml.etree.ElementTree as ET
 import pandas as pd
 from scipy.stats import chi2_contingency
+from utils.folders_paths import genealogy_results_path, metrics_path
 
 # Configuration
-INPUT_FOLDER = "03_results"
-OUTPUT_FOLDER = "09_results"
+INPUT_FOLDER = genealogy_results_path
+OUTPUT_FOLDER = metrics_path
 
 def parse_filename(filename):
     """

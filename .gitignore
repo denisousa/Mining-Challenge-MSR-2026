@@ -33,6 +33,8 @@ temp/*
 
 .env
 
+metrics_results/*
+
 /**/ccg_data.xml
 /**/ccg_metrics.xml
 

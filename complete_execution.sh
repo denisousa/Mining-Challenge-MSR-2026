@@ -2,14 +2,20 @@
 set -u
 
 # Use PYTHON_CMD to change the Python invocation (e.g., "poetry run python" or "python3")
-PYTHON_CMD="${PYTHON_CMD:-python3}"
+PYTHON_CMD="${PYTHON_CMD:-poetry run python}"
 
 scripts=(
-  "./src/0_get_aidev_csv.py"
-  "./src/1_get_all_projects.py"
-  "./src/2_get_last_merged_commit_per_project.py"
-  "./src/3_compute_clone_density.py"
-  "./src/4_get_genealogy.py"
+  "./src/0_get_aidev.py"
+  "./src/1_prepare_agents_prs.py"
+  "./src/2_prepare_human_prs.py"
+  "./src/3_get_balanced_repositories.py"
+  "./src/4_get_commits.py"
+  "./src/5_get_genealogy.py"
+  "./src/6_projects_survival_overview.py"
+  "./src/7_genealogy_patterns_analysis.py"
+  "./src/8_deep_genealogy_patterns_analysis.py"
+  "./src/9_k-volatile.py"
+  "./src/10_statistical_test.py"
 )
 
 now_ns() {

@@ -1,0 +1,666 @@
+Found 6 XML files in '/home/denis/test/Mini-Challenge-MSR-2026/genealogy_results'. Processing...
+
+======================================================================
+PART 1: STATISTICAL ANALYSIS PER PROJECT
+======================================================================
+
+======================================================================
+PROJECT: py_marimo-team_marimo
+======================================================================
+Records: 2559
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_marimo-team_marimo)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent  Same
+Author                                       
+agent                   2             1   972
+human                  17            15  1552
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 13.1875
+    - p-value = 0.00137
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and ChangePattern (p < 0.05) ***
+
+    Distribution by Author (%):
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                0.21          0.10  99.69
+human                1.07          0.95  97.98
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_marimo-team_marimo)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent               0   974         1
+human               3  1578         3
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 2.1423
+    - p-value = 0.34261
+    - degrees of freedom = 2
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_marimo-team_marimo_NO_SAME)...
+    [Excluding 'Same' pattern - 35 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                   2             1
+human                  17            15
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0000
+    - p-value = 1.00000
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_marimo-team_marimo_NO_SAME)...
+    [Excluding 'Same' pattern - 7 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent               0         1
+human               3         3
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0000
+    - p-value = 1.00000
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+----------------------------------------------------------------------
+
+======================================================================
+PROJECT: py_airbytehq_airbyte
+======================================================================
+Records: 12575
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_airbytehq_airbyte)...
+    Contingency Table:
+ChangePattern  Inconsistent  Same
+Author                           
+agent                    25  5264
+human                    23  7263
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 1.5952
+    - p-value = 0.20659
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_airbytehq_airbyte)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent              32  5212        45
+human              24  7237        25
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 19.6077
+    - p-value = 0.00006
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and EvolutionPattern (p < 0.05) ***
+
+    Distribution by Author (%):
+EvolutionPattern   Add   Same  Subtract
+Author                                 
+agent             0.61  98.54      0.85
+human             0.33  99.33      0.34
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_airbytehq_airbyte_NO_SAME)...
+    [Excluding 'Same' pattern - 48 records remaining]
+    Contingency Table:
+ChangePattern  Inconsistent
+Author                     
+agent                    25
+human                    23
+
+    [!] Not enough variance to run statistics (Data is uniform).
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_airbytehq_airbyte_NO_SAME)...
+    [Excluding 'Same' pattern - 126 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent              32        45
+human              24        25
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.4012
+    - p-value = 0.52649
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+----------------------------------------------------------------------
+
+======================================================================
+PROJECT: cs_microsoft_testfx
+======================================================================
+Records: 1465
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (cs_microsoft_testfx)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent  Same
+Author                                       
+agent                   2             1   880
+human                  10             6   566
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 15.9184
+    - p-value = 0.00035
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and ChangePattern (p < 0.05) ***
+
+    Distribution by Author (%):
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                0.23          0.11  99.66
+human                1.72          1.03  97.25
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (cs_microsoft_testfx)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent               1   881         1
+human               1   579         2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 1.0004
+    - p-value = 0.60642
+    - degrees of freedom = 2
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (cs_microsoft_testfx_NO_SAME)...
+    [Excluding 'Same' pattern - 19 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                   2             1
+human                  10             6
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0000
+    - p-value = 1.00000
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (cs_microsoft_testfx_NO_SAME)...
+    [Excluding 'Same' pattern - 5 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent               1         1
+human               1         2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0000
+    - p-value = 1.00000
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+----------------------------------------------------------------------
+
+======================================================================
+PROJECT: rb_antiwork_flexile
+======================================================================
+Records: 5714
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (rb_antiwork_flexile)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent  Same
+Author                                       
+agent                   1             9  3201
+human                   1             1  2501
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 4.6810
+    - p-value = 0.09628
+    - degrees of freedom = 2
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (rb_antiwork_flexile)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent               8  3191        12
+human               3  2498         2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 6.2023
+    - p-value = 0.04500
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and EvolutionPattern (p < 0.05) ***
+
+    Distribution by Author (%):
+EvolutionPattern   Add   Same  Subtract
+Author                                 
+agent             0.25  99.38      0.37
+human             0.12  99.80      0.08
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (rb_antiwork_flexile_NO_SAME)...
+    [Excluding 'Same' pattern - 12 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                   1             9
+human                   1             1
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.1200
+    - p-value = 0.72903
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (rb_antiwork_flexile_NO_SAME)...
+    [Excluding 'Same' pattern - 25 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent               8        12
+human               3         2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0913
+    - p-value = 0.76251
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+----------------------------------------------------------------------
+
+======================================================================
+PROJECT: py_mlflow_mlflow
+======================================================================
+Records: 10783
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_mlflow_mlflow)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent  Same
+Author                                       
+agent                  16             8  6343
+human                  43            38  4335
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 58.4389
+    - p-value = 0.00000
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and ChangePattern (p < 0.05) ***
+
+    Distribution by Author (%):
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                0.25          0.13  99.62
+human                0.97          0.86  98.17
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_mlflow_mlflow)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent               5  6359         3
+human              10  4394        12
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 13.5951
+    - p-value = 0.00112
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and EvolutionPattern (p < 0.05) ***
+
+    Distribution by Author (%):
+EvolutionPattern   Add   Same  Subtract
+Author                                 
+agent             0.08  99.87      0.05
+human             0.23  99.50      0.27
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (py_mlflow_mlflow_NO_SAME)...
+    [Excluding 'Same' pattern - 105 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                  16             8
+human                  43            38
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.8902
+    - p-value = 0.34541
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (py_mlflow_mlflow_NO_SAME)...
+    [Excluding 'Same' pattern - 30 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent               5         3
+human              10        12
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.1705
+    - p-value = 0.67971
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+----------------------------------------------------------------------
+
+======================================================================
+PROJECT: cs_dotnet_aspire
+======================================================================
+Records: 5027
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: AUTHOR vs CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (cs_dotnet_aspire)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent  Same
+Author                                       
+agent                  19             1  3036
+human                   2             2  1967
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 8.7370
+    - p-value = 0.01267
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and ChangePattern (p < 0.05) ***
+
+    Distribution by Author (%):
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                0.62          0.03  99.35
+human                0.10          0.10  99.80
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: AUTHOR vs EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (cs_dotnet_aspire)...
+    Contingency Table:
+EvolutionPattern  Add  Same  Subtract
+Author                               
+agent               0  3056         0
+human               3  1966         2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 7.7601
+    - p-value = 0.02065
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and EvolutionPattern (p < 0.05) ***
+
+    Distribution by Author (%):
+EvolutionPattern   Add    Same  Subtract
+Author                                  
+agent             0.00  100.00       0.0
+human             0.15   99.75       0.1
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: AUTHOR vs CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (cs_dotnet_aspire_NO_SAME)...
+    [Excluding 'Same' pattern - 24 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                  19             1
+human                   2             2
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 2.7429
+    - p-value = 0.09769
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: AUTHOR vs EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (cs_dotnet_aspire_NO_SAME)...
+    [Excluding 'Same' pattern - 5 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+human               3         2
+
+    [!] Not enough variance to run statistics (Data is uniform).
+----------------------------------------------------------------------
+
+======================================================================
+PART 2: OVERALL STATISTICAL ANALYSIS (ALL PROJECTS COMBINED)
+======================================================================
+Total Projects: 6
+Total Records: 38123
+
+──────────────────────────────────────────────────────────────────────
+TEST 1: Relationship between AUTHOR and CHANGE PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (ALL_DATA)...
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                  40            45  19696
+human                  73            85  18184
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 28.0202
+    - p-value = 0.00000
+    - degrees of freedom = 2
+
+    *** CORRELATION FOUND: There IS a statistically significant relationship
+        between AUTHOR and ChangePattern (p < 0.05) ***
+
+    Distribution by Author (%):
+ChangePattern  Consistent  Inconsistent   Same
+Author                                        
+agent                 0.2          0.23  99.57
+human                 0.4          0.46  99.14
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 2: Relationship between AUTHOR and EVOLUTION PATTERNS (with 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (ALL_DATA)...
+    Contingency Table:
+EvolutionPattern  Add   Same  Subtract
+Author                                
+agent              46  19673        62
+human              44  18252        46
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 1.3429
+    - p-value = 0.51097
+    - degrees of freedom = 2
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 3: Relationship between AUTHOR and CHANGE PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and ChangePattern (ALL_DATA_NO_SAME)...
+    [Excluding 'Same' pattern - 243 records remaining]
+    Contingency Table:
+ChangePattern  Consistent  Inconsistent
+Author                                 
+agent                  40            45
+human                  73            85
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.0000
+    - p-value = 1.00000
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and ChangePattern (p >= 0.05)
+
+
+──────────────────────────────────────────────────────────────────────
+TEST 4: Relationship between AUTHOR and EVOLUTION PATTERNS (without 'Same')
+──────────────────────────────────────────────────────────────────────
+
+  > Analyzing relationship between AUTHOR and EvolutionPattern (ALL_DATA_NO_SAME)...
+    [Excluding 'Same' pattern - 198 records remaining]
+    Contingency Table:
+EvolutionPattern  Add  Subtract
+Author                         
+agent              46        62
+human              44        46
+
+    Chi-Square Statistics:
+    - χ² (chi-square) = 0.5515
+    - p-value = 0.45769
+    - degrees of freedom = 1
+
+    Result: No statistically significant relationship found
+            between AUTHOR and EvolutionPattern (p >= 0.05)
+
+
+======================================================================
+ANALYSIS COMPLETE
+======================================================================
+
+✓ Results saved to: /home/denis/test/Mini-Challenge-MSR-2026/metrics_results/statistical_test_results.csv

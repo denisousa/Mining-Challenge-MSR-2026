@@ -2,7 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 import pandas as pd
 from pathlib import Path
-from utils.folders_paths import genealogy_results_path
+from utils.folders_paths import genealogy_results_path, metrics_path
 
 def extract_patterns_from_xml(xml_file):
     """
@@ -306,11 +306,10 @@ if __name__ == '__main__':
         print("No change patterns found for agent lineages.")
     
     # Save the CSVs
-    output_dir = os.path.join(base_dir, '08_results')
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(metrics_path, exist_ok=True)
     
-    evolution_csv = os.path.join(output_dir, 'evolution_patterns_summary.csv')
-    change_csv = os.path.join(output_dir, 'change_patterns_summary.csv')
+    evolution_csv = os.path.join(metrics_path, 'evolution_patterns_summary.csv')
+    change_csv = os.path.join(metrics_path, 'change_patterns_summary.csv')
     
     df_evolution.to_csv(evolution_csv, index=False)
     df_change.to_csv(change_csv, index=False)

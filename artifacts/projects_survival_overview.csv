@@ -1,0 +1,7 @@
+project,total_lineages,human_created_clones,agent_created_clones,alive_lineages,dead_lineages,human_alive,human_dead,agent_alive,agent_dead,max_version_nr,total_versions,avg_versions_per_lineage,evolution_count,change_count,total_prs
+cs_dotnet_aspire,38,37,1,26,12,25,12,1,0,183,5065,133.28947368421052,5,24,182
+cs_microsoft_testfx,30,29,1,27,3,26,3,1,0,63,1495,49.833333333333336,5,19,62
+py_airbytehq_airbyte,65,61,4,56,9,55,6,1,3,260,12640,194.46153846153845,126,48,259
+py_marimo-team_marimo,50,13,37,42,8,12,1,30,7,76,2609,52.18,7,35,75
+py_mlflow_mlflow,119,114,5,86,33,82,32,4,1,131,10902,91.61344537815125,30,105,130
+rb_antiwork_flexile,48,46,2,41,7,40,6,1,1,282,5762,120.04166666666667,25,12,281

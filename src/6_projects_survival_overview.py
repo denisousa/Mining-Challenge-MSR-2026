@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import pandas as pd
-from utils.folders_paths import genealogy_results_path, main_results
+from utils.folders_paths import genealogy_results_path, main_results, metrics_path
 
 def analyze_xml_file(xml_path):
     """
@@ -233,4 +233,36 @@ if __name__ == '__main__':
           f"{total_agent_dead:<12} "
           f"{int(round(overall_avg)):<10} "
           f"{total_prs_sum:<10}")
+    
+    # Save results to CSV in metrics_path
+    Path(metrics_path).mkdir(parents=True, exist_ok=True)
+    
+    # Prepare data for CSV
+    csv_data = []
+    for project_name, result in sorted(all_results.items()):
+        csv_data.append({
+            'project': project_name,
+            'total_lineages': result['total_lineages'],
+            'human_created_clones': result['human_created_clones'],
+            'agent_created_clones': result['agent_created_clones'],
+            'alive_lineages': result['alive_lineages'],
+            'dead_lineages': result['dead_lineages'],
+            'human_alive': result['human_alive'],
+            'human_dead': result['human_dead'],
+            'agent_alive': result['agent_alive'],
+            'agent_dead': result['agent_dead'],
+            'max_version_nr': result['max_version_nr'],
+            'total_versions': result['total_versions'],
+            'avg_versions_per_lineage': result['avg_versions_per_lineage'],
+            'evolution_count': result['evolution_count'],
+            'change_count': result['change_count'],
+            'total_prs': result.get('total_prs', 0)
+        })
+    
+    df_results = pd.DataFrame(csv_data)
+    output_path = Path(metrics_path) / "projects_survival_overview.csv"
+    df_results.to_csv(output_path, index=False)
+    
+    print()
+    print(f"✓ Results saved to: {output_path}")
     

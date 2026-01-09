@@ -1,17 +1,13 @@
 [tool.poetry]
-name = "mini-challenge-msr-2026"
+name = "mining-challenge-msr-2026"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 package-mode = false
 
-[tool.poetry.config.virtualenvs]
-in-project = true
-
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-
 requests = ">=2.32.5,<3.0.0"
 gitpython = ">=3.1.45,<4.0.0"
 matplotlib = ">=3.10.7,<4.0.0"

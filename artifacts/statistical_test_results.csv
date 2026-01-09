@@ -1,0 +1,29 @@
+context,pattern_type,chi2,p_value,dof,significant,correlation_exists,notes,language,project,n_projects,n_records
+py_marimo-team_marimo,ChangePattern,13.187497278397052,0.001368898825709189,2.0,True,YES - Significant correlation exists,Significant correlation found,py,marimo-team_marimo,1,2559
+py_marimo-team_marimo,EvolutionPattern,2.142305376833198,0.3426133632624458,2.0,False,NO - No significant correlation,No significant correlation,py,marimo-team_marimo,1,2559
+py_marimo-team_marimo_NO_SAME,ChangePattern,0.0,1.0,1.0,False,NO - No significant correlation,No significant correlation,py,marimo-team_marimo,1,35
+py_marimo-team_marimo_NO_SAME,EvolutionPattern,0.0,1.0,1.0,False,NO - No significant correlation,No significant correlation,py,marimo-team_marimo,1,7
+py_airbytehq_airbyte,ChangePattern,1.5951586372606301,0.20659065405253957,1.0,False,NO - No significant correlation,No significant correlation,py,airbytehq_airbyte,1,12575
+py_airbytehq_airbyte,EvolutionPattern,19.607677436218406,5.5239144411610224e-05,2.0,True,YES - Significant correlation exists,Significant correlation found,py,airbytehq_airbyte,1,12575
+py_airbytehq_airbyte_NO_SAME,ChangePattern,,,,False,No - Insufficient variance,Not enough variance,py,airbytehq_airbyte,1,48
+py_airbytehq_airbyte_NO_SAME,EvolutionPattern,0.4011595547309829,0.5264910213885603,1.0,False,NO - No significant correlation,No significant correlation,py,airbytehq_airbyte,1,126
+cs_microsoft_testfx,ChangePattern,15.918395838138778,0.00034943327885824207,2.0,True,YES - Significant correlation exists,Significant correlation found,cs,microsoft_testfx,1,1465
+cs_microsoft_testfx,EvolutionPattern,1.000370226102683,0.6064183933627857,2.0,False,NO - No significant correlation,No significant correlation,cs,microsoft_testfx,1,1465
+cs_microsoft_testfx_NO_SAME,ChangePattern,0.0,1.0,1.0,False,NO - No significant correlation,No significant correlation,cs,microsoft_testfx,1,19
+cs_microsoft_testfx_NO_SAME,EvolutionPattern,0.0,1.0,1.0,False,NO - No significant correlation,No significant correlation,cs,microsoft_testfx,1,5
+rb_antiwork_flexile,ChangePattern,4.681040272862274,0.09627754774459653,2.0,False,NO - No significant correlation,No significant correlation,rb,antiwork_flexile,1,5714
+rb_antiwork_flexile,EvolutionPattern,6.202341870231741,0.04499648357171663,2.0,True,YES - Significant correlation exists,Significant correlation found,rb,antiwork_flexile,1,5714
+rb_antiwork_flexile_NO_SAME,ChangePattern,0.12000000000000002,0.7290344895388038,1.0,False,NO - No significant correlation,No significant correlation,rb,antiwork_flexile,1,12
+rb_antiwork_flexile_NO_SAME,EvolutionPattern,0.09131493506493507,0.7625120967344708,1.0,False,NO - No significant correlation,No significant correlation,rb,antiwork_flexile,1,25
+py_mlflow_mlflow,ChangePattern,58.43885622087513,2.0425072523850436e-13,2.0,True,YES - Significant correlation exists,Significant correlation found,py,mlflow_mlflow,1,10783
+py_mlflow_mlflow,EvolutionPattern,13.5950502910434,0.0011165349929561342,2.0,True,YES - Significant correlation exists,Significant correlation found,py,mlflow_mlflow,1,10783
+py_mlflow_mlflow_NO_SAME,ChangePattern,0.8902335114222545,0.3454140363782613,1.0,False,NO - No significant correlation,No significant correlation,py,mlflow_mlflow,1,105
+py_mlflow_mlflow_NO_SAME,EvolutionPattern,0.17045454545454547,0.6797081543484926,1.0,False,NO - No significant correlation,No significant correlation,py,mlflow_mlflow,1,30
+cs_dotnet_aspire,ChangePattern,8.73697097865723,0.012670415523523987,2.0,True,YES - Significant correlation exists,Significant correlation found,cs,dotnet_aspire,1,5027
+cs_dotnet_aspire,EvolutionPattern,7.760128392960371,0.020649499513975038,2.0,True,YES - Significant correlation exists,Significant correlation found,cs,dotnet_aspire,1,5027
+cs_dotnet_aspire_NO_SAME,ChangePattern,2.742857142857143,0.09768995934615682,1.0,False,NO - No significant correlation,No significant correlation,cs,dotnet_aspire,1,24
+cs_dotnet_aspire_NO_SAME,EvolutionPattern,,,,False,No - Insufficient variance,Not enough variance,cs,dotnet_aspire,1,5
+ALL_DATA,ChangePattern,28.020210528278376,8.231682154518061e-07,2.0,True,YES - Significant correlation exists,Significant correlation found,ALL,ALL,6,38123
+ALL_DATA,EvolutionPattern,1.3428912197681697,0.5109693812323762,2.0,False,NO - No significant correlation,No significant correlation,ALL,ALL,6,38123
+ALL_DATA_NO_SAME,ChangePattern,0.0,1.0,1.0,False,NO - No significant correlation,No significant correlation,ALL,ALL,6,243
+ALL_DATA_NO_SAME,EvolutionPattern,0.551527777777779,0.4576941160823348,1.0,False,NO - No significant correlation,No significant correlation,ALL,ALL,6,198

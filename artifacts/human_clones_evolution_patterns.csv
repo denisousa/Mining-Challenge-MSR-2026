@@ -1,0 +1,7 @@
+Project,Human_Add,Human_Subtract,Agent_Add,Agent_Subtract,Total_Evolution
+cs_dotnet_aspire,2,2,0,0,4
+cs_microsoft_testfx,1,2,1,1,5
+py_airbytehq_airbyte,24,25,32,45,126
+py_marimo-team_marimo,0,1,0,0,1
+py_mlflow_mlflow,9,12,3,2,26
+rb_antiwork_flexile,3,2,8,12,25

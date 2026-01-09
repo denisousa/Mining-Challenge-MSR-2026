@@ -1,0 +1,7 @@
+Project,Human_Consistent,Human_Inconsistent,Agent_Consistent,Agent_Inconsistent,Total_Change
+cs_dotnet_aspire,1,2,19,1,23
+cs_microsoft_testfx,10,6,2,1,19
+py_airbytehq_airbyte,0,22,0,25,47
+py_marimo-team_marimo,1,1,0,0,2
+py_mlflow_mlflow,42,38,15,8,103
+rb_antiwork_flexile,1,1,1,9,12

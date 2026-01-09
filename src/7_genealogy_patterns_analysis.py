@@ -1,10 +1,9 @@
 import os
 import pandas as pd
 import xml.etree.ElementTree as ET
-from utils.folders_paths import genealogy_results_path
+from utils.folders_paths import genealogy_results_path, metrics_path
 
-results_07_path = os.path.abspath("07_results")
-os.makedirs(results_07_path, exist_ok=True)
+os.makedirs(metrics_path, exist_ok=True)
 
 print("Starting analysis of clones modifications (Human & Agent)...")
 
@@ -139,7 +138,7 @@ def analyze_clones_modifications(results_folder, clone_creator_type):
     return df
 
 
-def save_and_display_results(df, clone_creator_type, results_07_path):
+def save_and_display_results(df, clone_creator_type, output_path):
     creator_label = clone_creator_type.upper()
     
     if df is None or df.empty:
@@ -159,7 +158,7 @@ def save_and_display_results(df, clone_creator_type, results_07_path):
     print(df_change_patterns.to_string(index=False))
     
     # Save Change Patterns
-    change_output_path = os.path.join(results_07_path, f"{clone_creator_type}_clones_change_patterns.csv")
+    change_output_path = os.path.join(output_path, f"{clone_creator_type}_clones_change_patterns.csv")
     df_change_patterns.to_csv(change_output_path, index=False)
     print(f"\n✓ Saved: {change_output_path}")
     
@@ -170,7 +169,7 @@ def save_and_display_results(df, clone_creator_type, results_07_path):
     print(df_evolution_patterns.to_string(index=False))
     
     # Save Evolution Patterns
-    evolution_output_path = os.path.join(results_07_path, f"{clone_creator_type}_clones_evolution_patterns.csv")
+    evolution_output_path = os.path.join(output_path, f"{clone_creator_type}_clones_evolution_patterns.csv")
     df_evolution_patterns.to_csv(evolution_output_path, index=False)
     print(f"\n✓ Saved: {evolution_output_path}")
     
@@ -190,13 +189,13 @@ if __name__ == '__main__':
     print("ANALYZING HUMAN-CREATED CLONES")
     print("="*100)
     df_human_clones = analyze_clones_modifications(genealogy_results_path, "human")
-    save_and_display_results(df_human_clones, "human", results_07_path)
+    save_and_display_results(df_human_clones, "human", metrics_path)
 
     print("\n" + "="*100)
     print("ANALYZING AGENT-CREATED CLONES")
     print("="*100)
     df_agent_clones = analyze_clones_modifications(genealogy_results_path, "agent")
-    save_and_display_results(df_agent_clones, "agent", results_07_path)
+    save_and_display_results(df_agent_clones, "agent", metrics_path)
 
     print("\n" + "="*100)
     print("ANALYSIS COMPLETE")
